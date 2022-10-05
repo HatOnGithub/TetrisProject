@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Input;
 /// <summary>
 /// A class for helping out with input-related tasks, such as checking if a key or mouse button has been pressed.
 /// </summary>
-class InputHelper
+public class InputHelper
 {
     // The current and previous mouse/keyboard states.
     MouseState currentMouseState, previousMouseState;

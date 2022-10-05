@@ -50,6 +50,7 @@ class GameWorld
 
     public void HandleInput(GameTime gameTime, InputHelper inputHelper)
     {
+
     }
 
     public void Update(GameTime gameTime)

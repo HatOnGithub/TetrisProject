@@ -1,11 +1,13 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework.Input;
+using System;
 using System.Text;
 
 public class TetrisBlock
 {
-    public bool[,] Shape { get { return shape; } set { shape = value; } }
-    bool[,] shape;
-    public TetrisBlock()
+    public bool[,] shape;
+
+    
+    public TetrisBlock(bool[,] shape)
     {
 
     }
@@ -13,124 +15,15 @@ public class TetrisBlock
     /// <summary>
     ///  T Block 
     /// </summary>
-	class T
+	
+    public static void InputHandler(InputHelper inputHelper)
     {
-        public T(TetrisBlock tetrisBlock)
+        if (inputHelper.KeyPressed(Keys.A))
         {
-            tetrisBlock.Shape = new bool[4, 4]{
-                {false, false, false, false},
 
-                {false, true , false, false},
-
-                {false, true , true , false},
-
-                {false, true , false, false}};
-        }
-    }
-    /// <summary>
-    /// L Block
-    /// </summary>
-	class L1
-    {
-        public L1(TetrisBlock tetrisBlock)
-        {
-            tetrisBlock.Shape = new bool[4, 4]{
-                {false, false, false, false},
-
-                {false, true , true , false},
-
-                {false, true , false, false},
-
-                {false, true , false, false}};
-        }
-    }
-    /// <summary>
-    /// Flipped L Block
-    /// </summary>
-	class L2
-    {
-        public L2(TetrisBlock tetrisBlock)
-        {
-            tetrisBlock.Shape = new bool[4, 4]{
-                {false, false, false, false},
-
-                {false, true , true , false},
-
-                {false, false, true , false},
-
-                {false, false, true , false}};
-        }
-    }
-    /// <summary>
-    /// Long BLock
-    /// </summary>
-    class Long
-    {
-        public Long(TetrisBlock tetrisBlock)
-        {
-            tetrisBlock.Shape = new bool[4, 4]{
-                {false, true , false, false},
-
-                {false, true , false, false},
-
-                {false, true , false, false},
-
-                {false, true , false, false}};
-        }
-    }
-    /// <summary>
-    /// Square Block
-    /// </summary>
-    class SQ
-    {
-        public SQ(TetrisBlock tetrisBlock)
-        {
-            tetrisBlock.Shape = new bool[4, 4]{
-                {false, false, false, false},
-
-                {false, true , true , false},
-
-                {false, true , true , false},
-
-                {false, false, false, false}};
         }
     }
 
-    /// <summary>
-    /// Diagonal Block with left high
-    /// </summary>
-    class D1
-    {
-        public D1(TetrisBlock tetrisBlock)
-        {
-            tetrisBlock.Shape = new bool[4, 4]{
-                {false, false, false, false},
-
-                {false, true , false, false},
-
-                {false, true , true , false},
-
-                {false, false, true , false}};
-        }
-    }
-    /// <summary>
-    /// Diagonal Block with right high
-    /// </summary>
-    class D2
-    {
-        public D2(TetrisBlock tetrisBlock)
-        {
-            tetrisBlock.Shape = new bool[4, 4]{
-                {false, false, false, false},
-
-                {false, false, true , false},
-
-                {false, true , true , false},
-
-                {false, true , false, false}};
-
-        }
-    }
     public void RotateCW()
     {
         bool[,] a = shape;
@@ -152,5 +45,131 @@ public class TetrisBlock
             {a[0, 0], a[1, 0], a[2, 0], a[3, 0] }};
         this.shape = rotated;
         
+    }
+}
+
+class T : TetrisBlock
+{
+    public T(bool[,] shape)
+        : base(shape)
+    {
+        base.shape = new bool[4, 4]{
+                {false, false, false, false},
+
+                {false, true , false, false},
+
+                {false, true , true , false},
+
+                {false, true , false, false}};
+    }
+}
+/// <summary>
+/// L Block
+/// </summary>
+class L1 : TetrisBlock
+{
+    public L1(bool[,] shape)
+        : base(shape)
+    {
+        base.shape = new bool[4, 4]{
+                {false, false, false, false},
+
+                {false, true , true , false},
+
+                {false, true , false, false},
+
+                {false, true , false, false}};
+    }
+}
+/// <summary>
+/// Flipped L Block
+/// </summary>
+class L2 : TetrisBlock
+{
+    public L2(bool[,] shape)
+        : base(shape)
+    {
+        base.shape = new bool[4, 4]{
+                {false, false, false, false},
+
+                {false, true , true , false},
+
+                {false, false, true , false},
+
+                {false, false, true , false}};
+    }
+}
+/// <summary>
+/// Long BLock
+/// </summary>
+class Long : TetrisBlock
+{
+    public Long(bool[,] shape)
+        : base(shape)
+    {
+        base.shape = new bool[4, 4]{
+                {false, true , false, false},
+
+                {false, true , false, false},
+
+                {false, true , false, false},
+
+                {false, true , false, false}};
+    }
+}
+/// <summary>
+/// Square Block
+/// </summary>
+class SQ : TetrisBlock
+{
+    public SQ(bool[,] shape)
+        : base(shape)
+    {
+        base.shape = new bool[4, 4]{
+                {false, false, false, false},
+
+                {false, true , true , false},
+
+                {false, true , true , false},
+
+                {false, false, false, false}};
+    }
+}
+
+/// <summary>
+/// Diagonal Block with left high
+/// </summary>
+class D1 : TetrisBlock
+{
+    public D1(bool[,] shape)
+        : base(shape)
+    {
+        base.shape = new bool[4, 4]{
+                {false, false, false, false},
+
+                {false, true , false, false},
+
+                {false, true , true , false},
+
+                {false, false, true , false}};
+    }
+}
+/// <summary>
+/// Diagonal Block with right high
+/// </summary>
+class D2 : TetrisBlock
+{
+    public D2(bool[,] shape)
+        : base(shape)
+    {
+        base.shape = new bool[4, 4]{
+                {false, false, false, false},
+
+                {false, false, true , false},
+
+                {false, true , true , false},
+
+                {false, true , false, false}};
+
     }
 }
