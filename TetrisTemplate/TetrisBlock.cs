@@ -12,9 +12,7 @@ public class TetrisBlock
 
     }
 
-    /// <summary>
-    ///  T Block 
-    /// </summary>
+    
 	
     public static void InputHandler(InputHelper inputHelper)
     {
@@ -47,7 +45,9 @@ public class TetrisBlock
         
     }
 }
-
+/// <summary>
+///  T Block 
+/// </summary>
 class T : TetrisBlock
 {
     public T(bool[,] shape)

@@ -31,6 +31,7 @@ class TetrisGame : Game
     {        
         // initialize the graphics device
         GraphicsDeviceManager graphics = new GraphicsDeviceManager(this);
+        IsMouseVisible = true;
 
         // store a static reference to the content manager, so other objects can use it
         ContentManager = Content;
@@ -39,7 +40,7 @@ class TetrisGame : Game
         Content.RootDirectory = "Content";
 
         // set the desired window size
-        ScreenSize = new Point(800, 600);
+        ScreenSize = new Point(1280, 720);
         graphics.PreferredBackBufferWidth = ScreenSize.X;
         graphics.PreferredBackBufferHeight = ScreenSize.Y;
 
@@ -65,7 +66,7 @@ class TetrisGame : Game
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.White);
+        GraphicsDevice.Clear(Color.Black);
         gameWorld.Draw(gameTime, spriteBatch);
     }
 }

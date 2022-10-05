@@ -12,11 +12,12 @@ class TetrisGrid
     /// The position at which this TetrisGrid should be drawn.
     Vector2 position;
 
-    private static int width = 10;
+    private const int width = 10;
 
-    private static int height = 20;
+    private const int height = 20;
     
     bool[,] gridMatrix = new bool[height, width];
+    Color[,] colorMatrix = new Color[height, width];
 
     /// The number of grid elements in the x-direction.
     public int Width { get { return width; } }
@@ -31,7 +32,7 @@ class TetrisGrid
     public TetrisGrid()
     {
         emptyCell = TetrisGame.ContentManager.Load<Texture2D>("block");
-        position = Vector2.Zero;
+        position = new Vector2(TetrisGame.ScreenSize.X/2 - 5 * emptyCell.Width, TetrisGame.ScreenSize.Y/2 - 10 * emptyCell.Height);
         Clear();
     }
 
@@ -50,7 +51,7 @@ class TetrisGrid
             {
                 if (gridMatrix[i,j])
                 {
-                    spriteBatch.Draw(emptyCell, new Vector2(position.X + (j * emptyCell.Width), position.Y + (i * emptyCell.Height)), Color.Red);
+                    spriteBatch.Draw(emptyCell, new Vector2(position.X + (j * emptyCell.Width), position.Y + (i * emptyCell.Height)), colorMatrix[i,j]);
                 }
                 else
                 {
