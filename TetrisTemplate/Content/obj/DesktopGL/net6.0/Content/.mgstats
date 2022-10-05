@@ -1,0 +1,3 @@
+Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"C:/Users/Dio/Desktop/Tetris - Code template/TetrisTemplate/Content/block.png","C:/Users/Dio/Desktop/Tetris - Code template/TetrisTemplate/Content/bin/DesktopGL/Content/block.xnb","TextureProcessor","Texture2DContent",338,3685,0,0227241
+"C:/Users/Dio/Desktop/Tetris - Code template/TetrisTemplate/Content/SpelFont.spritefont","C:/Users/Dio/Desktop/Tetris - Code template/TetrisTemplate/Content/bin/DesktopGL/Content/SpelFont.xnb","FontDescriptionProcessor","SpriteFontContent",2068,21535,0,2256573
