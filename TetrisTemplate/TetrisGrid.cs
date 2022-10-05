@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 /// <summary>
 /// A class for representing the Tetris playing grid.
 /// </summary>
-class TetrisGrid
+public class TetrisGrid
 {
     /// The sprite of a single empty cell in the grid.
     Texture2D emptyCell;
@@ -16,7 +16,7 @@ class TetrisGrid
 
     private const int height = 20;
     
-    bool[,] gridMatrix = new bool[height, width];
+    public bool[,] gridMatrix = new bool[height, width];
     Color[,] colorMatrix = new Color[height, width];
 
     /// The number of grid elements in the x-direction.
