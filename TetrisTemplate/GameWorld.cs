@@ -8,6 +8,7 @@ using System;
 /// </summary>
 class GameWorld
 {
+
     /// <summary>
     /// An enum for the different game states that the game can have.
     /// </summary>
@@ -50,7 +51,6 @@ class GameWorld
 
     public void HandleInput(GameTime gameTime, InputHelper inputHelper)
     {
-
     }
 
     public void Update(GameTime gameTime)
