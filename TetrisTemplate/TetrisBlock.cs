@@ -21,17 +21,18 @@ public class TetrisBlock
     protected Point location;
     protected TetrisGrid targetGrid;
     private bool[] canMoveTo = new bool[4];
-    public TetrisBlock(bool[,] shape, bool[,] detectionPattern, TetrisGrid targetGrid, Point location)
+    public TetrisBlock(TetrisGrid targetGrid, Point location)
     {
-        this.shape = shape;
-        this.detectionPattern = detectionPattern;
         this.targetGrid = targetGrid;
         this.location = location;
     }
 
-    
+    public void Update()
+    {
+
+    }
 	
-    public static void InputHandler(InputHelper inputHelper)
+    public void InputHandler(InputHelper inputHelper)
     {
         if (inputHelper.KeyPressed(Keys.A))
         {
@@ -70,26 +71,20 @@ public class TetrisBlock
     public void Test()
     {
         bool[,] matrix = targetGrid.gridMatrix;
-        for (int i = 0; i < detectionPattern.Length; i++)
+        for (int i = 0; i < shape.Length; i++)
         {
-            for (int j = 0 ; j < detectionPattern.Length; j++)
+            if (location.Y < 0) break; // prevents it from assigning values outside the array
+            for (int j = 0 ; j < shape.Length; j++)
             {
-                if (location.X + j < 0)
+                if (location.X + j < 0 || location.X + j > matrix.GetLength(1))
                 {
-                    if (detectionPattern[i,j]) canMoveTo[3] = false;
+                    if (shape[i, j])
+                    {
+                        if (location.X + j < 0) canMoveTo[3] = false;
+                        if (location.X + j > matrix.GetLength(1)) canMoveTo[1] = false;
+                    }
                     break;
                 }
-                if (location.X + j > targetGrid.gridMatrix.GetLength(0))
-                {
-                    if (detectionPattern[i, j]) canMoveTo[1] = false;
-                    break;
-                }
-                if (location.Y + j > targetGrid.gridMatrix.GetLength(1))
-                {
-                    if (detectionPattern[i, j]) canMoveTo[2] = false;
-                    break;
-                }
-                if (location.Y < 0) break; // prevents it from assigning values outside the array
                 if (matrix[i + location.Y, j + location.X] == detectionPattern[i, j] && detectionPattern[i, j])
                 {
                     if (shape[i - 1, j]) canMoveTo[2] = false; // check if space below is free
@@ -118,13 +113,6 @@ public class TetrisBlock
             {a[3, 2], a[2, 2], a[1, 2], a[0, 2] },
             {a[3, 3], a[2, 3], a[1, 3], a[0, 3] }};
 
-        bool[,] b = detectionPattern;
-        bool[,] rotatedB = new bool[4, 4] {
-            {b[3, 0], b[2, 0], b[1, 0], b[0, 0] },
-            {b[3, 1], b[2, 1], b[1, 1], b[0, 1] },
-            {b[3, 2], b[2, 2], b[1, 2], b[0, 2] },
-            {b[3, 3], b[2, 3], b[1, 3], b[0, 3] }};
-        this.detectionPattern = rotatedB;
 
     }
 
@@ -133,22 +121,17 @@ public class TetrisBlock
     /// </summary>
     public void RotateCCW()
     {
-        
-        bool[,] a = shape;
-        bool[,] rotated = new bool[4, 4] {
+
+        if (this.canMoveTo[0] && this.canMoveTo[1] && this.canMoveTo[2] && this.canMoveTo[3])
+        {
+            bool[,] a = shape;
+            bool[,] rotated = new bool[4, 4] {
             {a[0, 3], a[1, 3], a[2, 3], a[3, 3] },
             {a[0, 2], a[1, 2], a[2, 2], a[3, 2] },
             {a[0, 1], a[1, 1], a[2, 1], a[3, 1] },
             {a[0, 0], a[1, 0], a[2, 0], a[3, 0] }};
-        this.shape = rotated;
-
-        bool[,] b = detectionPattern;
-        bool[,] rotatedB = new bool[4, 4] {
-            {b[0, 3], b[1, 3], b[2, 3], b[3, 3] },
-            {b[0, 2], b[1, 2], b[2, 2], b[3, 2] },
-            {b[0, 1], b[1, 1], b[2, 1], b[3, 1] },
-            {b[0, 0], b[1, 0], b[2, 0], b[3, 0] }};
-        this.detectionPattern = rotatedB;
+            this.shape = rotated;
+        }
     }
 }
 /// <summary>
@@ -156,8 +139,8 @@ public class TetrisBlock
 /// </summary>
 class T : TetrisBlock
 {
-    public T(bool[,] shape, bool[,] detectionPattern, TetrisGrid targetGrid, Point location)
-        : base(shape, detectionPattern, targetGrid, location)
+    public T(TetrisGrid targetGrid, Point location)
+        : base( targetGrid, location)
     {
         base.shape = new bool[4, 4]{
                 {false, false, false, false},
@@ -174,8 +157,8 @@ class T : TetrisBlock
 /// </summary>
 class L1 : TetrisBlock
 {
-    public L1(bool[,] shape, bool[,] detectionPattern, TetrisGrid targetGrid, Point location)
-        : base(shape, detectionPattern, targetGrid, location)
+    public L1(TetrisGrid targetGrid, Point location)
+        : base(targetGrid, location)
     {
         base.shape = new bool[4, 4]{
                 {false, false, false, false},
@@ -192,8 +175,8 @@ class L1 : TetrisBlock
 /// </summary>
 class L2 : TetrisBlock
 {
-    public L2(bool[,] shape, bool[,] detectionPattern, TetrisGrid targetGrid, Point location)
-        : base(shape, detectionPattern, targetGrid, location)
+    public L2(TetrisGrid targetGrid, Point location)
+        : base(targetGrid, location)
     {
         base.shape = new bool[4, 4]{
                 {false, false, false, false},
@@ -210,8 +193,8 @@ class L2 : TetrisBlock
 /// </summary>
 class Long : TetrisBlock
 {
-    public Long(bool[,] shape, bool[,] detectionPattern, TetrisGrid targetGrid, Point location)
-        : base(shape, detectionPattern, targetGrid, location)
+    public Long(TetrisGrid targetGrid, Point location)
+        : base(targetGrid, location)
     {
         base.shape = new bool[4, 4]{
                 {false, true , false, false},
@@ -228,8 +211,8 @@ class Long : TetrisBlock
 /// </summary>
 class SQ : TetrisBlock
 {
-    public SQ(bool[,] shape, bool[,] detectionPattern, TetrisGrid targetGrid, Point location)
-        : base(shape, detectionPattern, targetGrid, location)
+    public SQ(TetrisGrid targetGrid, Point location)
+        : base(targetGrid, location)
     {
         base.shape = new bool[4, 4]{
                 {false, false, false, false},
@@ -247,8 +230,8 @@ class SQ : TetrisBlock
 /// </summary>
 class D1 : TetrisBlock
 {
-    public D1(bool[,] shape, bool[,] detectionPattern, TetrisGrid targetGrid, Point location)
-        : base(shape, detectionPattern, targetGrid, location)
+    public D1(TetrisGrid targetGrid, Point location)
+        : base(targetGrid, location)
     {
         base.shape = new bool[4, 4]{
                 {false, false, false, false},
@@ -265,8 +248,8 @@ class D1 : TetrisBlock
 /// </summary>
 class D2 : TetrisBlock
 {
-    public D2(bool[,] shape, bool[,] detectionPattern, TetrisGrid targetGrid, Point location)
-        : base(shape, detectionPattern, targetGrid, location)
+    public D2(TetrisGrid targetGrid, Point location)
+        : base(targetGrid, location)
     {
         base.shape = new bool[4, 4]{
                 {false, false, false, false},

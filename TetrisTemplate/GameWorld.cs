@@ -8,7 +8,8 @@ using System;
 /// </summary>
 class GameWorld
 {
-
+    private int a = 0;
+    private int b = 0;
     /// <summary>
     /// An enum for the different game states that the game can have.
     /// </summary>
@@ -39,6 +40,12 @@ class GameWorld
     /// </summary>
     TetrisGrid grid;
 
+    /// <summary>
+    /// Tetris blocks
+    /// </summary>
+    TetrisBlock block;
+
+    NextUpGrid nextUpGrid;
     public GameWorld()
     {
         random = new Random();
@@ -47,6 +54,11 @@ class GameWorld
         font = TetrisGame.ContentManager.Load<SpriteFont>("SpelFont");
 
         grid = new TetrisGrid();
+
+        nextUpGrid = new NextUpGrid(a,b);
+        Reset();
+
+        
     }
 
     public void HandleInput(GameTime gameTime, InputHelper inputHelper)
@@ -55,17 +67,29 @@ class GameWorld
 
     public void Update(GameTime gameTime)
     {
+
     }
 
     public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
     {
         spriteBatch.Begin();
         grid.Draw(gameTime, spriteBatch);
+        nextUpGrid.Draw(gameTime, spriteBatch);
         spriteBatch.End();
     }
 
     public void Reset()
     {
+        
+        var random = new Random();
+        if (a == 0)
+        {
+            a = random.Next(1, 7);
+        }
+        a = b;
+        b = random.Next(1,7);
+        
+        grid.Clear();
     }
 
 }
