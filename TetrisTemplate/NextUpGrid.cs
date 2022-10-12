@@ -21,13 +21,11 @@ public class NextUpGrid
     public bool[,] gridMatrix = new bool[height, width];
     Color[,] colorMatrix = new Color[height, width];
 
-    public NextUpGrid(int a, int b)
+    public NextUpGrid()
 	{
-		this.a = a;
-		this.b = b;
         emptyCell = TetrisGame.ContentManager.Load<Texture2D>("block");
         position = new Vector2(TetrisGame.ScreenSize.X / 2 + 7 * emptyCell.Width, TetrisGame.ScreenSize.Y / 2 - 10 * emptyCell.Height);
-        Clear();
+        Reset();
     }
     public void Update(GameTime gameTime)
     {
@@ -54,9 +52,16 @@ public class NextUpGrid
             }
         }
     }
-    public void Clear()
+    public void Reset()
     {
         gridMatrix = new bool[height, width];
+        var random = new Random();
+        if (a == 0)
+        {
+            a = random.Next(1, 7);
+        }
+        a = b;
+        b = random.Next(1, 7);
     }
 
 }

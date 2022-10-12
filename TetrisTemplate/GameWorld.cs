@@ -55,19 +55,20 @@ class GameWorld
 
         grid = new TetrisGrid();
 
-        nextUpGrid = new NextUpGrid(a,b);
+        nextUpGrid = new NextUpGrid();
+
         Reset();
 
-        
+        block = new Long(grid, new Point(0,0));
     }
 
     public void HandleInput(GameTime gameTime, InputHelper inputHelper)
     {
+        block.InputHandler(inputHelper);
     }
 
     public void Update(GameTime gameTime)
     {
-
     }
 
     public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
@@ -75,20 +76,14 @@ class GameWorld
         spriteBatch.Begin();
         grid.Draw(gameTime, spriteBatch);
         nextUpGrid.Draw(gameTime, spriteBatch);
+        block.Draw(gameTime, spriteBatch);
         spriteBatch.End();
     }
 
     public void Reset()
     {
-        
-        var random = new Random();
-        if (a == 0)
-        {
-            a = random.Next(1, 7);
-        }
-        a = b;
-        b = random.Next(1,7);
-        
+
+        nextUpGrid.Reset();
         grid.Clear();
     }
 

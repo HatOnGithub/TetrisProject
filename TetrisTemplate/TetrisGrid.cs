@@ -25,6 +25,8 @@ public class TetrisGrid
     /// The number of grid elements in the y-direction.
     public int Height { get { return height; } }
 
+    /// current position of the grid origin
+    public Vector2 Position { get { return position; } }
     /// <summary>
     /// Creates a new TetrisGrid.
     /// </summary>
