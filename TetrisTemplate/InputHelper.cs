@@ -51,6 +51,16 @@ public class InputHelper
     }
 
     /// <summary>
+    /// Returns whether or not a given keyboard key has just been released.
+    /// </summary>
+    /// <param name="k">The key to check.</param>
+    /// <returns>true if the given key has just been released in this frame; false otherwise.</returns>
+    public bool KeyReleased(Keys k)
+    {
+        return previousKeyboardState.IsKeyDown(k) && currentKeyboardState.IsKeyUp(k);
+    }
+
+    /// <summary>
     /// Returns whether or not a given keyboard key is currently being held down.
     /// </summary>
     /// <param name="k">The key to check.</param>
