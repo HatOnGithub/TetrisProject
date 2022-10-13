@@ -59,7 +59,7 @@ class GameWorld
 
         Reset();
 
-        block = new Long(grid, new Point(0,0));
+        block = new D2(grid, new Point(0,0), 2f);
     }
 
     public void HandleInput(GameTime gameTime, InputHelper inputHelper)
