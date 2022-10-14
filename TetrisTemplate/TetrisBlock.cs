@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mime;
 using System.Runtime.CompilerServices;
@@ -23,12 +24,17 @@ public class TetrisBlock
     /// Returns the color of the Tetris Block
     /// </summary>
     public Color Color { get { return color; } }
-    
-    
+
+    /// <summary>
+    /// If the shapeToGrid() method has been called it shows true
+    /// </summary>
+    public bool HasCommitedToGrid { get { return hasCommitedToGrid; } }
+    private bool hasCommitedToGrid = false;
+
+
     protected float baseFallSpeed;
     protected int rotation = 0;
     protected bool[,] shape;
-    protected bool[] canMoveTo = new bool[4];
     protected Color color;
     protected Color[] possibleColors = {Color.Red, Color.Orange, Color.Yellow, Color.Green, Color.Blue, Color.Purple };
     protected Point location;
@@ -36,8 +42,17 @@ public class TetrisBlock
     protected Random random = new Random();
     protected Texture2D emptyCell;
 
+    protected int lastTime = 0;
+    protected int currentTime;
+    bool timer = false;
 
 
+    /// <summary>
+    /// sets starting values
+    /// </summary>
+    /// <param name="targetGrid"></param>
+    /// <param name="location"></param>
+    /// <param name="baseFallSpeed"></param>
     public TetrisBlock(TetrisGrid targetGrid, Point location, float baseFallSpeed)
     {
         this.targetGrid = targetGrid;
@@ -47,35 +62,71 @@ public class TetrisBlock
         emptyCell = TetrisGame.ContentManager.Load<Texture2D>("block");
     }
 
+    /// <summary>
+    /// Does Physics stuff
+    /// </summary>
+    /// <param name="gameTime"></param>
     public void Update(GameTime gameTime)
     {
+        currentTime = (int) gameTime.TotalGameTime.TotalMilliseconds;
+        switch (timer)
+        {
+            case false:
+                lastTime = currentTime;
+                timer = true;
+                break;
+            case true:
+                if (currentTime >= lastTime + (1000 / baseFallSpeed))
+                {
+                    bool[] canMoveTo = MoveTest(shape);
+                    if (canMoveTo[2])
+                    {
+                        location.Y += 1;
+                        timer = false;
+                    }
+                    else if (currentTime >= lastTime + 500)
+                    {
+                        shapeToGrid();
+                        timer = false;
+                    }
+                }
+                break;
+        }
 
     }
 	
+    /// <summary>
+    /// Controls for moving the Block
+    /// </summary>
+    /// <param name="inputHelper"></param>
     public void InputHandler(InputHelper inputHelper)
     {
         if (inputHelper.KeyPressed(Keys.A))
         {
-            MoveTest(shape);
+            bool[] canMoveTo = MoveTest(shape);
             if (canMoveTo[3]) location.X -= 1;
+            timer = false;
         }
         if (inputHelper.KeyPressed(Keys.D))
         {
-            MoveTest(shape);
+            bool[] canMoveTo = MoveTest(shape);
             if (canMoveTo[1]) location.X += 1;
+            timer = false;
         }
 
         if (inputHelper.KeyPressed(Keys.S))
         {
-            MoveTest(shape);
+            bool[] canMoveTo = MoveTest(shape);
             if (canMoveTo[2]) location.Y += 1;
+            timer = false;
         }
 
         // for debugging
         if (inputHelper.KeyPressed(Keys.W))
         {
-            MoveTest(shape);
+            bool[] canMoveTo = MoveTest(shape);
             if (canMoveTo[0]) location.Y -= 1;
+            timer = false;
         }
         
         if (inputHelper.KeyPressed(Keys.Space))
@@ -86,11 +137,13 @@ public class TetrisBlock
         if (inputHelper.KeyPressed(Keys.Right))
         {
             RotateCW();
+            timer = false;
         }
 
         if (inputHelper.KeyPressed(Keys.Left))
         {
             RotateCCW();
+            timer = false;
         }
 
     }
@@ -99,10 +152,10 @@ public class TetrisBlock
     /// Returns a bool array of length 4 defined as such: 
     /// [0] = Up, [1] = Right, [2] = Down, [3] = Left
     /// </summary>
-    protected void MoveTest(bool[,] testshape)
+    protected bool[] MoveTest(bool[,] testshape)
     {
         bool[,] gridMatrix = targetGrid.gridMatrix;
-        canMoveTo = Enumerable.Repeat<bool>(true, 4).ToArray(); // sets all values to true
+        bool[] canMoveTo = Enumerable.Repeat<bool>(true, 4).ToArray(); // sets all values to true
 
         for (int y = location.Y; y < location.Y + 4; y++)
         {
@@ -124,8 +177,8 @@ public class TetrisBlock
                         // if the shape is not near an edge, this kicks in
                         if (y > 0 && y < targetGrid.Height - 1)
                         {
-                            if (gridMatrix[y - 1, x])   canMoveTo[2] = false;
-                            if (gridMatrix[y + 1, x])   canMoveTo[0] = false;
+                            if (gridMatrix[y - 1, x])   canMoveTo[0] = false;
+                            if (gridMatrix[y + 1, x])   canMoveTo[2] = false;
 
                         }
                         if (x > 0 && x < targetGrid.Width - 1)
@@ -137,8 +190,16 @@ public class TetrisBlock
                 }
             }
         }
+        return canMoveTo;
     }
 
+    /// <summary>
+    /// Returns a bool if the requested shape fits in the location with the given offset
+    /// </summary>
+    /// <param name="rotatedShape"></param>
+    /// <param name="offsetX"></param>
+    /// <param name="offsetY"></param>
+    /// <returns></returns>
     protected bool RotateTest(bool[,] rotatedShape, int offsetX, int offsetY) // doesn't fuckin work
     {
         bool[,] gridMatrix = targetGrid.gridMatrix;
@@ -148,7 +209,7 @@ public class TetrisBlock
             for (int x = offsetLocation.X; x < offsetLocation.X + 4; x++) // iterates through possible offsetLocations
             {
                 if (x < 0)
-                {
+        {
                     if (rotatedShape[0, -1 + (offsetLocation.X + x) * -1] || 
                         rotatedShape[1, -1 + (offsetLocation.X + x) * -1] || 
                         rotatedShape[2, -1 + (offsetLocation.X + x) * -1] || 
@@ -157,12 +218,12 @@ public class TetrisBlock
                         return false;
                 }
                 if (x > targetGrid.Width - 1)
-                {
+            {
                     if (rotatedShape[0, 4 - (x - targetGrid.Width - 1)] ||
                         rotatedShape[1, 4 - (x - targetGrid.Width - 1)] ||
                         rotatedShape[2, 4 - (x - targetGrid.Width - 1)] ||
                         rotatedShape[3, 4 - (x - targetGrid.Width - 1)]) 
-                        
+
                         return false;
                 }
             }
@@ -184,7 +245,7 @@ public class TetrisBlock
         for (int x = -1; x < 2; x++)
         {
             for (int y = 0; y < 2; y++)
-            {
+        {
                 if (RotateTest(rotated, x, y)) shape = rotated;
             }
         }
@@ -201,7 +262,7 @@ public class TetrisBlock
         {a[0, 2], a[1, 2], a[2, 2], a[3, 2] },
         {a[0, 1], a[1, 1], a[2, 1], a[3, 1] },
         {a[0, 0], a[1, 0], a[2, 0], a[3, 0] }};
-
+        
         for (int x = -1; x < 2; x++)
         {
             for(int y = 0; y < 2; y++)
@@ -211,6 +272,7 @@ public class TetrisBlock
         }
     }
 
+    // draws the shape by testing the shape matrix and then drawing it on screen with the location as offset compared to the targeted grid
     public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
     {
         Vector2 gridPosition = targetGrid.Position;
@@ -225,7 +287,43 @@ public class TetrisBlock
             }
         }
     }
+
+    public void shapeToGrid()
+    {
+        bool[,] newMatrix = new bool[targetGrid.Height, targetGrid.Width];
+        Color[,] newColorMatrix = new Color[targetGrid.Height, targetGrid.Width];
+        for (int y = 0; y < targetGrid.Height; y++)
+        {
+            for (int x = 0; x < targetGrid.Width; x++)
+            {
+                if (y - location.Y >= 0 && y - location.Y < 4 && x - location.X >= 0 && x - location.X < 4)
+                {
+                    if (shape[y - location.Y, x - location.X])
+                    {
+                        newMatrix[y, x] = true;
+                        newColorMatrix[y, x] = color;
+                    }
+                    else
+                    {
+                        newMatrix[y, x] = targetGrid.gridMatrix[y, x];
+                        newColorMatrix[y, x] = targetGrid.colorMatrix[y, x];
+                    }
+                }
+                else
+                {
+                    newMatrix[y, x] = targetGrid.gridMatrix[y, x];
+                    newColorMatrix[y, x] = targetGrid.colorMatrix[y, x];
+                }
+            }
+        }
+        targetGrid.gridMatrix = newMatrix;
+        targetGrid.colorMatrix = newColorMatrix;
+        hasCommitedToGrid = true;
+    }
 }
+
+// Subcla
+
 /// <summary>
 ///  T Block 
 /// </summary>

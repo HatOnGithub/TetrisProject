@@ -17,7 +17,7 @@ public class TetrisGrid
     private const int height = 20;
     
     public bool[,] gridMatrix = new bool[height, width];
-    Color[,] colorMatrix = new Color[height, width];
+    public Color[,] colorMatrix = new Color[height, width];
 
     /// The number of grid elements in the x-direction.
     public int Width { get { return width; } }
@@ -59,7 +59,6 @@ public class TetrisGrid
                 {
                     spriteBatch.Draw(emptyCell, new Vector2(position.X + (j * emptyCell.Width), position.Y + (i * emptyCell.Height)), Color.White);
                 }
-                
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Concurrent;
 
 /// <summary>
 /// A class for representing the game world.
@@ -10,6 +11,12 @@ class GameWorld
 {
     private int a = 0;
     private int b = 0;
+
+    const int basefallspeed = 4;
+
+    Point startspawn;
+
+    int shapeSize = 4;
     /// <summary>
     /// An enum for the different game states that the game can have.
     /// </summary>
@@ -57,9 +64,11 @@ class GameWorld
 
         nextUpGrid = new NextUpGrid();
 
-        Reset();
+        startspawn = new Point((grid.Width - shapeSize) / 2 , shapeSize * -1);
 
-        block = new D2(grid, new Point(0,0), 2f);
+        NewRandomBlock();
+
+        Reset();
     }
 
     public void HandleInput(GameTime gameTime, InputHelper inputHelper)
@@ -69,6 +78,8 @@ class GameWorld
 
     public void Update(GameTime gameTime)
     {
+        block.Update(gameTime);
+        if (block.HasCommitedToGrid) NewRandomBlock();
     }
 
     public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
@@ -80,9 +91,31 @@ class GameWorld
         spriteBatch.End();
     }
 
+    public void NewRandomBlock()
+    {
+        int i = random.Next(1, 7);
+        switch (i)
+        {
+            case 1: block = new T(grid, startspawn, basefallspeed);
+                break;
+            case 2: block = new L1(grid, startspawn, basefallspeed);
+                break;
+            case 3: block = new L2(grid, startspawn, basefallspeed);
+                break;
+            case 4: block = new Long(grid, startspawn, basefallspeed);
+                break;
+            case 5: block = new SQ(grid, startspawn, basefallspeed);
+                break;
+            case 6: block = new D1(grid, startspawn, basefallspeed);
+                break;
+            case 7: block = new D2(grid, startspawn, basefallspeed);
+                break;
+        }
+
+    }
+
     public void Reset()
     {
-
         nextUpGrid.Reset();
         grid.Clear();
     }
