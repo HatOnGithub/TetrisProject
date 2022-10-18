@@ -1,5 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 /// <summary>
 /// A class for representing the Tetris playing grid.
@@ -8,6 +11,8 @@ public class TetrisGrid
 {
     /// The sprite of a single empty cell in the grid.
     Texture2D emptyCell;
+    /// the sprite of a filled cell on the grid
+    Texture2D filledCell;
 
     /// The position at which this TetrisGrid should be drawn.
     Vector2 position;
@@ -27,18 +32,18 @@ public class TetrisGrid
 
     /// current position of the grid origin
     public Vector2 Position { get { return position; } }
+
+
     /// <summary>
     /// Creates a new TetrisGrid.
     /// </summary>
     /// <param name="b"></param>
     public TetrisGrid()
     {
-        emptyCell = TetrisGame.ContentManager.Load<Texture2D>("block");
+        emptyCell = TetrisGame.ContentManager.Load<Texture2D>("grid");
+        filledCell = TetrisGame.ContentManager.Load<Texture2D>("block");
         position = new Vector2(TetrisGame.ScreenSize.X/2 - 5 * emptyCell.Width, TetrisGame.ScreenSize.Y/2 - 10 * emptyCell.Height);
-        Clear();
     }
-
-    
 
     /// <summary>
     /// Draws the grid on the screen.
@@ -53,7 +58,7 @@ public class TetrisGrid
             {
                 if (gridMatrix[i,j])
                 {
-                    spriteBatch.Draw(emptyCell, new Vector2(position.X + (j * emptyCell.Width), position.Y + (i * emptyCell.Height)), colorMatrix[i,j]);
+                    spriteBatch.Draw(filledCell, new Vector2(position.X + (j * emptyCell.Width), position.Y + (i * emptyCell.Height)), colorMatrix[i,j]);
                 }
                 else
                 {
@@ -70,5 +75,71 @@ public class TetrisGrid
     {
         gridMatrix = new bool[height, width];
     }
+
+
+
+    /// <summary>
+    /// Returns the points gained depending on lines cleared and points gained
+    /// Level should start at 0
+    /// </summary>
+    /// <param name="n"></param>
+    /// <returns></returns>
+    public int FullLines(int n, int lowestPointOfBlock) 
+    {
+        int l = 0;
+        int result = 0;
+        List<int> linesToClear = new List<int>();
+        for (int y = lowestPointOfBlock; y >= 0; y--) 
+        {
+            for (int x = 0; x < width - 1; x++)
+            {
+                if (IsFilled(y))
+                {
+                    l++;
+                    linesToClear.Add(y);
+                }
+                
+            }
+        }
+
+        if (l > 0) 
+        {
+            switch (l)
+            {
+                case 1:
+                    result = 40 * (n + 1);
+                    break;
+                case 2:
+                    result = 100 * (n + 1);
+                    break;
+                case 3:
+                    result = 300 * (n + 1);
+                    break;
+                case 4:
+                    result = 1200 * (n + 1);
+                    break;
+            }
+            ClearLines(linesToClear);
+        } 
+
+        return result;
+    }
+
+    public void ClearLines(IList<int> y)
+    {
+
+    }
+
+    protected bool IsFilled(int y)
+    {
+        for (int x = 0; x < width - 1; x++)
+        {
+            if (gridMatrix[y, x]) return false;
+        }
+        return true;
+    }
+
+
+   
 }
 

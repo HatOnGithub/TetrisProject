@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.Concurrent;
 
 /// <summary>
 /// A class for representing the game world.
@@ -9,14 +9,16 @@ using System.Collections.Concurrent;
 /// </summary>
 class GameWorld
 {
-    private int a = 0;
-    private int b = 0;
+    int score = 0;
+
+    int level = 0;
 
     const int basefallspeed = 4;
 
-    Point startspawn;
+    bool started = false;
 
-    int shapeSize = 4;
+    bool cannotSpawn = false;
+
     /// <summary>
     /// An enum for the different game states that the game can have.
     /// </summary>
@@ -48,11 +50,20 @@ class GameWorld
     TetrisGrid grid;
 
     /// <summary>
-    /// Tetris blocks
+    /// Current block
     /// </summary>
     TetrisBlock block;
 
+    /// <summary>
+    /// Next block in queue
+    /// </summary>
+    TetrisBlock nextblock;
+
+    /// <summary>
+    /// Smaller grid for displaying the next 
+    /// </summary>
     NextUpGrid nextUpGrid;
+
     public GameWorld()
     {
         random = new Random();
@@ -64,59 +75,125 @@ class GameWorld
 
         nextUpGrid = new NextUpGrid();
 
-        startspawn = new Point((grid.Width - shapeSize) / 2 , shapeSize * -1);
-
-        NewRandomBlock();
+        nextblock = NewRandomBlock();
 
         Reset();
     }
 
     public void HandleInput(GameTime gameTime, InputHelper inputHelper)
     {
-        block.InputHandler(inputHelper);
+        if (started) block.InputHandler(inputHelper);
+        if (inputHelper.KeyPressed(Keys.Space) && !started)
+        {
+            CycleBlock();
+        }
     }
 
     public void Update(GameTime gameTime)
     {
-        block.Update(gameTime);
-        if (block.HasCommitedToGrid) NewRandomBlock();
+        switch (gameState)
+        {
+            case GameState.Playing:
+                if (started)
+                {
+                    if (block.HasCommitedToGrid)
+                    {
+                        grid.FullLines(level, block.lowestPoint);
+                        CycleBlock();
+                    }
+                    if (cannotSpawn) 
+                    {
+                        started = false;
+                        block = null;
+                        cannotSpawn = false;
+                        break;
+                    } 
+                    block.Update(gameTime);
+                }
+                break;
+        }
     }
 
     public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
     {
         spriteBatch.Begin();
-        grid.Draw(gameTime, spriteBatch);
-        nextUpGrid.Draw(gameTime, spriteBatch);
-        block.Draw(gameTime, spriteBatch);
+        switch (gameState)
+        {
+            case GameState.Playing:
+                grid.Draw(gameTime, spriteBatch);
+                nextUpGrid.Draw(gameTime, spriteBatch);
+
+                if (started) block.Draw(gameTime, spriteBatch);
+
+                break;
+            case GameState.GameOver:
+                Vector2 midScreen = new Vector2((TetrisGame.ScreenSize.X / 2), (TetrisGame.ScreenSize.Y / 2));
+                Vector2 stringSizeGameOver = font.MeasureString("Game Over");
+                Vector2 stringSizeLevel = font.MeasureString("Level: " + level.ToString());
+                Vector2 stringSizeScore = font.MeasureString("Score: " + score.ToString());
+                spriteBatch.DrawString(font, "Game Over", new Vector2(midScreen.X - stringSizeGameOver.X/2, midScreen.Y - stringSizeGameOver.Y), Color.White);
+                spriteBatch.DrawString(font, "Level: " + level.ToString(), new Vector2(midScreen.X - stringSizeLevel.X / 2 , midScreen.Y), Color.White);
+                spriteBatch.DrawString(font, "Score: " + score.ToString(), new Vector2(midScreen.X - stringSizeScore.X / 2 , midScreen.Y + stringSizeScore.Y), Color.White);
+                break;
+        }
         spriteBatch.End();
     }
 
-    public void NewRandomBlock()
+    // ------------------------------------------------------------------------------------------------
+
+
+    /// <summary>
+    /// Swaps the current block with the next block in queue after the current block has commited to grid
+    /// Also updates the score depending on the amount of lines cleared, if any
+    /// </summary>
+    public void CycleBlock()
     {
-        int i = random.Next(1, 7);
+        // checks if block can spawn, if it can't, it resets the board
+        if (started && (grid.gridMatrix[0, 3] || grid.gridMatrix[0, 4] || grid.gridMatrix[0, 5] ||
+            grid.gridMatrix[1, 3] || grid.gridMatrix[1, 4] || grid.gridMatrix[1, 5] || grid.gridMatrix[1, 6]))
+        {
+            Reset();
+            started = false;
+            block = null;
+            cannotSpawn = true;
+        }
+        // normal cycling of blocks
+        else
+        {
+            block = nextblock;
+            started = true;
+        }
+        nextblock = NewRandomBlock();
+        nextUpGrid.Refresh(nextblock);
+    }
+
+    public TetrisBlock NewRandomBlock()
+    {
+        TetrisBlock result = null;
+        int i = random.Next(1, 8);
         switch (i)
         {
-            case 1: block = new T(grid, startspawn, basefallspeed);
+            case 1: result = new T(grid, basefallspeed);
                 break;
-            case 2: block = new L1(grid, startspawn, basefallspeed);
+            case 2: result = new L(grid, basefallspeed);
                 break;
-            case 3: block = new L2(grid, startspawn, basefallspeed);
+            case 3: result = new J(grid, basefallspeed);
                 break;
-            case 4: block = new Long(grid, startspawn, basefallspeed);
+            case 4: result = new I(grid, basefallspeed);
                 break;
-            case 5: block = new SQ(grid, startspawn, basefallspeed);
+            case 5: result = new O(grid, basefallspeed);
                 break;
-            case 6: block = new D1(grid, startspawn, basefallspeed);
+            case 6: result = new S(grid, basefallspeed);
                 break;
-            case 7: block = new D2(grid, startspawn, basefallspeed);
+            case 7: result = new Z(grid, basefallspeed);
                 break;
         }
-
+        return result;
     }
 
     public void Reset()
     {
-        nextUpGrid.Reset();
+        nextUpGrid.Refresh(nextblock);
         grid.Clear();
     }
 

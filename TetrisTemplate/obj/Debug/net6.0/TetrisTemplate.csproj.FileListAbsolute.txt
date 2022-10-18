@@ -25,3 +25,4 @@ C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\obj\Debug\n
 C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\obj\Debug\net6.0\TetrisTemplate.pdb
 C:\Users\LeHat\Source\Repos\HatOnGithub\TetrisProject\TetrisTemplate\obj\Debug\net6.0\TetrisTemplate.genruntimeconfig.cache
 C:\Users\LeHat\Source\Repos\HatOnGithub\TetrisProject\TetrisTemplate\obj\Debug\net6.0\ref\TetrisTemplate.dll
+C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\bin\Debug\net6.0\Content\grid.xnb

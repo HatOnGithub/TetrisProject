@@ -1,0 +1,4 @@
+Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"C:/Users/LeHat/source/repos/HatOnGithub/TetrisProject/TetrisTemplate/Content/block.png","C:/Users/LeHat/source/repos/HatOnGithub/TetrisProject/TetrisTemplate/Content/bin/Windows/block.xnb","TextureProcessor","Texture2DContent",472,3685,0.1024436
+"C:/Users/LeHat/source/repos/HatOnGithub/TetrisProject/TetrisTemplate/Content/grid.png","C:/Users/LeHat/source/repos/HatOnGithub/TetrisProject/TetrisTemplate/Content/bin/Windows/grid.xnb","TextureProcessor","Texture2DContent",338,3685,0.0014266
+"C:/Users/LeHat/source/repos/HatOnGithub/TetrisProject/TetrisTemplate/Content/SpelFont.spritefont","C:/Users/LeHat/source/repos/HatOnGithub/TetrisProject/TetrisTemplate/Content/bin/Windows/SpelFont.xnb","FontDescriptionProcessor","SpriteFontContent",2068,21535,0.0803538
