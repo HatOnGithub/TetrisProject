@@ -71,6 +71,9 @@ class GameWorld
     /// </summary>
     NextUpGrid nextUpGrid;
 
+    /// <summary>
+    /// Hey, you called me?
+    /// </summary>
     public GameWorld()
     {
         random = new Random();
@@ -89,6 +92,11 @@ class GameWorld
         Reset();
     }
 
+    /// <summary>
+    /// Does Input Stuff
+    /// </summary>
+    /// <param name="gameTime"></param>
+    /// <param name="inputHelper"></param>
     public void HandleInput(GameTime gameTime, InputHelper inputHelper)
     {
         if (started) block.InputHandler(inputHelper);
@@ -98,6 +106,10 @@ class GameWorld
         }
     }
 
+    /// <summary>
+    /// Does Checks and stuff
+    /// </summary>
+    /// <param name="gameTime"></param>
     public void Update(GameTime gameTime)
     {
         switch (gameState)
@@ -146,6 +158,11 @@ class GameWorld
         }
     }
 
+    /// <summary>
+    /// Does Drawing Stuff
+    /// </summary>
+    /// <param name="gameTime"></param>
+    /// <param name="spriteBatch"></param>
     public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
     {
         spriteBatch.Begin();
@@ -203,6 +220,10 @@ class GameWorld
         nextUpGrid.Refresh(nextblock, holdblock);
     }
 
+    /// <summary>
+    /// Returns a new Random block
+    /// </summary>
+    /// <returns></returns>
     public TetrisBlock NewRandomBlock()
     {
         TetrisBlock result = null;
@@ -227,6 +248,9 @@ class GameWorld
         return result;
     }
 
+    /// <summary>
+    /// Calculates score based on level, lines cleared and other bonuses
+    /// </summary>
     public void HandleScore()
     {
         int l = grid.FullLines(block.LowestPoint);
@@ -255,6 +279,9 @@ class GameWorld
         CycleBlock();
     }
 
+    /// <summary>
+    /// Keeps a record of lines cleared, lines per level and current level
+    /// </summary>
     public void HandleLevels()
     {
         int[] LinesBeforeIncrease = new int[30] 
@@ -269,6 +296,9 @@ class GameWorld
         }
     }
 
+    /// <summary>
+    /// Clears the board
+    /// </summary>
     public void Reset()
     {
         nextUpGrid.Refresh(nextblock, holdblock);
