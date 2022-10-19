@@ -135,10 +135,9 @@ public class TetrisBlock
     /// </summary>
     protected void HardDrop()
     {
-        int oldLocation = location.Y;
-        for (int y = 0; y < targetGrid.Height; y++)
+        for (int y = location.Y; y < targetGrid.Height; y++)
         {
-            location.Y = oldLocation + y;
+            location.Y = y;
             if (!MoveTest(shape)[2])
             {
                 CommitToGrid();
@@ -433,7 +432,7 @@ class O : TetrisBlock
 }
 
 /// <summary>
-/// Diagonal Block with left high
+/// The S shaped Tetris Block
 /// </summary>
 class S : TetrisBlock
 {
@@ -453,7 +452,7 @@ class S : TetrisBlock
     }
 }
 /// <summary>
-/// Diagonal Block with right high
+/// The Z Shaped Tetris block
 /// </summary>
 class Z : TetrisBlock
 {

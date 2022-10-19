@@ -91,14 +91,10 @@ public class TetrisGrid
         List<int> linesToClear = new List<int>();
         for (int y = lowestPointOfBlock; y >= 0; y--) 
         {
-            for (int x = 0; x < width - 1; x++)
+            if (IsFilled(y))
             {
-                if (IsFilled(y))
-                {
-                    l++;
-                    linesToClear.Add(y);
-                }
-                
+                l++;
+                linesToClear.Add(y);
             }
         }
 
@@ -125,16 +121,43 @@ public class TetrisGrid
         return result;
     }
 
-    public void ClearLines(IList<int> y)
+    /// <summary>
+    /// Clears the lines given as parameter and moves lines above it down
+    /// </summary>
+    /// <param name="lines"></param>
+    public void ClearLines(List<int> lines)
     {
-
+        for (int i = 0; i < lines.Count && lines.Count > 0; i++)
+        {
+            for (int y = lines[i]; y >= 0; y--)
+            {
+                if (y == lines[i])
+                {
+                    for (int x = 0; x < width; x++) 
+                    {
+                        gridMatrix[y, x] = false;
+                        colorMatrix[y, x] = Color.White;
+                    }
+                    continue;
+                }
+                for (int x = 0; x < width; x++)
+                {
+                    
+                    gridMatrix[y + 1, x] = gridMatrix[y,x];
+                    colorMatrix[y + 1, x] = colorMatrix[y, x];
+                    gridMatrix[y, x] = false;
+                    colorMatrix[y, x] = Color.White;
+                }
+            }
+            if (i < lines.Count - 1 && i >= 0) lines[i + 1] += i + 1;
+        }
     }
 
     protected bool IsFilled(int y)
     {
-        for (int x = 0; x < width - 1; x++)
+        for (int x = 0; x < width; x++)
         {
-            if (gridMatrix[y, x]) return false;
+            if (!gridMatrix[y, x]) return false;
         }
         return true;
     }
