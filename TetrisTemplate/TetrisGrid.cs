@@ -19,7 +19,7 @@ public class TetrisGrid
 
     private const int width = 10;
 
-    private const int height = 20;
+    private const int height = 22;
     
     public bool[,] gridMatrix = new bool[height, width];
     public Color[,] colorMatrix = new Color[height, width];
@@ -42,7 +42,7 @@ public class TetrisGrid
     {
         emptyCell = TetrisGame.ContentManager.Load<Texture2D>("grid");
         filledCell = TetrisGame.ContentManager.Load<Texture2D>("block");
-        position = new Vector2(TetrisGame.ScreenSize.X/2 - 5 * emptyCell.Width, TetrisGame.ScreenSize.Y/2 - 10 * emptyCell.Height);
+        position = new Vector2(TetrisGame.ScreenSize.X/2 - width/2 * emptyCell.Width, TetrisGame.ScreenSize.Y/2 - height/2 * emptyCell.Height);
     }
 
     /// <summary>
@@ -79,62 +79,61 @@ public class TetrisGrid
 
 
     /// <summary>
-    /// Returns the points gained depending on lines cleared and points gained
-    /// Level should start at 0
+    /// Returns the amount of full lines and clears the lines off the grid
     /// </summary>
-    /// <param name="n"></param>
-    /// <returns></returns>
-    public int FullLines(int n, int lowestPointOfBlock) 
+    public int FullLines(int lowestPointOfBlock) 
     {
         int l = 0;
-        int result = 0;
         List<int> linesToClear = new List<int>();
         for (int y = lowestPointOfBlock; y >= 0; y--) 
         {
-            for (int x = 0; x < width - 1; x++)
+            if (IsFilled(y))
             {
-                if (IsFilled(y))
-                {
-                    l++;
-                    linesToClear.Add(y);
-                }
-                
+                l++;
+                linesToClear.Add(y);
             }
         }
-
-        if (l > 0) 
-        {
-            switch (l)
-            {
-                case 1:
-                    result = 40 * (n + 1);
-                    break;
-                case 2:
-                    result = 100 * (n + 1);
-                    break;
-                case 3:
-                    result = 300 * (n + 1);
-                    break;
-                case 4:
-                    result = 1200 * (n + 1);
-                    break;
-            }
-            ClearLines(linesToClear);
-        } 
-
-        return result;
+        if (l > 0) ClearLines(linesToClear);
+        return l;
     }
 
-    public void ClearLines(IList<int> y)
+    /// <summary>
+    /// Clears the lines given as parameter and moves lines above it down
+    /// </summary>
+    /// <param name="lines"></param>
+    public void ClearLines(List<int> lines)
     {
-
+        for (int i = 0; i < lines.Count && lines.Count > 0; i++)
+        {
+            for (int y = lines[i]; y >= 0; y--)
+            {
+                if (y == lines[i])
+                {
+                    for (int x = 0; x < width; x++) 
+                    {
+                        gridMatrix[y, x] = false;
+                        colorMatrix[y, x] = Color.White;
+                    }
+                    continue;
+                }
+                for (int x = 0; x < width; x++)
+                {
+                    
+                    gridMatrix[y + 1, x] = gridMatrix[y,x];
+                    colorMatrix[y + 1, x] = colorMatrix[y, x];
+                    gridMatrix[y, x] = false;
+                    colorMatrix[y, x] = Color.White;
+                }
+            }
+            if (i < lines.Count - 1 && i >= 0) lines[i + 1] += i + 1;
+        }
     }
 
     protected bool IsFilled(int y)
     {
-        for (int x = 0; x < width - 1; x++)
+        for (int x = 0; x < width; x++)
         {
-            if (gridMatrix[y, x]) return false;
+            if (!gridMatrix[y, x]) return false;
         }
         return true;
     }

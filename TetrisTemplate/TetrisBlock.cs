@@ -3,29 +3,41 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Linq;
+using System.Threading;
 
 public class TetrisBlock
 {
     /// <summary>
     /// Shape of the current Tetris block as a 2D bool array
     /// </summary>
-    public bool[,] Shape { get { return shape; } }
+    public bool[,] Shape { get { return shape; } set { shape = value; } }
+    protected bool[,] shape;
     
     /// <summary>
     /// Size of the shape
     /// </summary>
     public int Size { get { return size; } }
+    protected int size;
+    
+    /// <summary>
+    /// Rotation
+    /// </summary>
+    public int Rotation { get { return rotation; } set { rotation = value; } }
+    protected int rotation;
     
     /// <summary>
     /// Current location on the grid as a Point
     /// </summary>
-    public Point Location { get { return location; } }
+    public Point Location { get { return location; } set { location = value; } }
+    protected Point location;
+    protected Point startlocation;
 
     /// <summary>
     /// Returns the color of the Tetris Block
     /// </summary>
     public Color Color { get { return color; } }
-
+    protected Color color;
+    
     /// <summary>
     /// If the shapeToGrid() method has been called [0] shows true
     /// If the shape is outside of bounds when it cannot move down, [1] shows true (loss condition)
@@ -33,25 +45,43 @@ public class TetrisBlock
     public bool HasCommitedToGrid { get { return hasCommitedToGrid; } }
     private bool hasCommitedToGrid = false;
 
+    /// <summary>
+    /// Put the shape in Hold
+    /// </summary>
+    public bool ToHold { get { return toHold; } set { toHold = value; } }
+    protected bool toHold = false;
 
-    public int lowestPoint;
+    // Score Modifiers (HardDropped and CellsDroppedBonus)
+    public bool HardDropped { get { return hardDropped; } }
+    protected bool hardDropped = false;
 
+    public int CellsDroppedBonus { get { return cellsDroppedBonus; } }
+    protected int cellsDroppedBonus = 0;
+    
+    // Lowest point of the block after commiting
+    public int LowestPoint { get { return lowestPoint; } }
+    protected int lowestPoint = 0;
+
+    // Bool to turn on softdropping bonus counting
+    protected bool IsSoftDropping = false;
+    
+    // What speed the ball should fall
     protected float baseFallSpeed;
-    protected bool[,] shape;
-    protected int size;
-    bool[,] gridMatrix;
-    protected Color color;
-    protected Point location;
-
 
     // stores which grid the block is bound to
     protected TetrisGrid targetGrid;
+    
+    // Matrix of the target grid
+    bool[,] gridMatrix;
 
     // random num generator
     protected Random random = new Random();
 
     // texture of the block
     protected Texture2D sprite;
+
+    // Rotation System
+    protected SuperRotationSystem rotationSystem;
 
     // timer values
     protected int lastTime = 0;
@@ -72,76 +102,25 @@ public class TetrisBlock
         gridMatrix = targetGrid.gridMatrix;
         this.baseFallSpeed = baseFallSpeed;
         sprite = TetrisGame.ContentManager.Load<Texture2D>("block");
+        rotation = 0;
     }
 
     
 	
-    /// <summary>
-    /// Controls for moving the Block
-    /// </summary>
-    /// <param name="inputHelper"></param>
-    public void InputHandler(InputHelper inputHelper)
-    {
-        // movement
-        if (inputHelper.KeyPressed(Keys.A))
-        {
-            if (MoveTest(shape)[3]) location.X -= 1;
-            if (!MoveTest(shape)[2]) timerActive = false;
-        }
-        if (inputHelper.KeyPressed(Keys.D))
-        {
-            if (MoveTest(shape)[1]) location.X += 1;
-            if (!MoveTest(shape)[2]) timerActive = false;
-        }
-
-        if (inputHelper.KeyPressed(Keys.S))
-        {
-            baseFallSpeed *= 2;
-        }
-        if (inputHelper.KeyReleased(Keys.S))
-        {
-            baseFallSpeed /= 2;
-        }
-
-        // for debugging
-        if (inputHelper.KeyPressed(Keys.W))
-        {
-            if (MoveTest(shape)[0]) location.Y -= 1;
-            timerActive = false;
-        }
-
-
-        // non-movement actions
-        if (inputHelper.KeyPressed(Keys.Space))
-        {
-            HardDrop();
-        }
-
-        if (inputHelper.KeyPressed(Keys.Right))
-        {
-            RotateCW();
-            timerActive = false;
-        }
-
-        if (inputHelper.KeyPressed(Keys.Left))
-        {
-            RotateCCW();
-            timerActive = false;
-        }
-
-    }
+    
     /// <summary>
     /// Moves the block to the lowest possible position
     /// </summary>
     protected void HardDrop()
     {
-        int oldLocation = location.Y;
-        for (int y = 0; y < targetGrid.Height; y++)
+        int start = location.Y;
+        for (int y = start; y < targetGrid.Height; y++)
         {
-            location.Y = oldLocation + y;
+            location.Y = y;
             if (!MoveTest(shape)[2])
             {
-                CommitToGrid();
+                cellsDroppedBonus = y - start;
+                hardDropped = true;
                 break;
             }
         }
@@ -156,9 +135,6 @@ public class TetrisBlock
         // sets all values to true
         bool[] canMoveTo = Enumerable.Repeat<bool>(true, 4).ToArray(); 
 
-        // if the entry point for a block is filled, can't move down
-        if (gridMatrix[0, targetGrid.Width / 2] || gridMatrix[0, targetGrid.Width / 2 + 1]) canMoveTo[2] = false; 
-
         // goes through the shape
         for (int y = location.Y; y < location.Y + size; y++)
         {
@@ -170,6 +146,7 @@ public class TetrisBlock
                 {
                     // This part has to be nested else you get problems with indexes being out of range
                     // It checks if a part of the shape is present within the given coordinates
+                    if (x < 0) continue;
                     if (testshape[y - location.Y, x - location.X]) 
                     {
                         // this part tests for "edge" cases (see what i did there?)
@@ -197,65 +174,6 @@ public class TetrisBlock
         return canMoveTo;
     }
 
-
-    /// <summary>
-    /// Rotates shape ClockWise, Test() built in, no need to call it seperately
-    /// </summary>
-    protected void RotateCW()
-    {
-        if (size != 2) // because rotationg a square doesn't do anything
-        {
-            bool[,] rotated = new bool[0,0];
-            switch (size)
-            {
-                case 3: rotated = new bool[3, 3]{
-                    {shape[2,0], shape[1,0], shape[0,0] },
-                    {shape[2,1], shape[1,1], shape[0,1] },
-                    {shape[2,2], shape[1,2], shape[0,2] }};
-                    break;
-
-                case 4: rotated = new bool[4, 4] {
-                    {shape[3, 0], shape[2, 0], shape[1, 0], shape[0, 0] },
-                    {shape[3, 1], shape[2, 1], shape[1, 1], shape[0, 1] },
-                    {shape[3, 2], shape[2, 2], shape[1, 2], shape[0, 2] },
-                    {shape[3, 3], shape[2, 3], shape[1, 3], shape[0, 3] }};
-                    break;
-            }
-            shape = rotated;
-        }
-
-    }
-
-    /// <summary>
-    /// Rotates shape Counter ClockWise, Test() built in, no need to call it seperately
-    /// </summary>
-    protected void RotateCCW()
-    {
-        if (size != 2) // because rotating a square doesn't do anything
-        {
-            bool[,] rotated = new bool[0, 0];
-
-            switch (size)
-            {
-                case 3:
-                    rotated = new bool[3, 3] {
-                    {shape[0, 2], shape[1, 2], shape[2, 2]},
-                    {shape[0, 1], shape[1, 1], shape[2, 1]},
-                    {shape[0, 2], shape[1, 0], shape[2, 0]}};
-                    break;
-
-                case 4:
-                    rotated = new bool[4, 4] {
-                    {shape[0, 3], shape[1, 3], shape[2, 3], shape[3, 3] },
-                    {shape[0, 2], shape[1, 2], shape[2, 2], shape[3, 2] },
-                    {shape[0, 1], shape[1, 1], shape[2, 1], shape[3, 1] },
-                    {shape[0, 0], shape[1, 0], shape[2, 0], shape[3, 0] }};
-                    break;
-            }
-            shape = rotated;
-        }
-    }
-
     /// <summary>
     /// If the block has reached it's lowest point, transfer the data of the block to the target grid
     /// </summary>
@@ -279,6 +197,21 @@ public class TetrisBlock
     }
 
     /// <summary>
+    /// Does the stuff to make sure when returning from hold it resets properly
+    /// </summary>
+    public void ReturnFromHold()
+    {
+        timerActive = false;
+        location = startlocation;
+    }
+
+
+
+
+
+
+
+    /// <summary>
     /// Does Physics stuff
     /// </summary>
     /// <param name="gameTime"></param>
@@ -299,6 +232,7 @@ public class TetrisBlock
                     {
                         location.Y += 1;
                         timerActive = false;
+                        if (IsSoftDropping) cellsDroppedBonus += 1; 
                     }
                     else if (currentTime >= lastTime + 500)
                     {
@@ -311,6 +245,68 @@ public class TetrisBlock
 
     }
 
+    /// <summary>
+    /// Controls for moving the Block
+    /// </summary>
+    /// <param name="inputHelper"></param>
+    public void InputHandler(InputHelper inputHelper)
+    {
+        // move left
+        if (inputHelper.KeyPressed(Keys.A) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
+        {
+            if (MoveTest(shape)[3]) location.X -= 1;
+            if (!MoveTest(shape)[2]) timerActive = false;
+        }
+        // move right
+        if (inputHelper.KeyPressed(Keys.D) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
+        {
+            if (MoveTest(shape)[1]) location.X += 1;
+            if (!MoveTest(shape)[2]) timerActive = false;
+        }
+
+
+        // Increase Gravity when S is held
+        if (inputHelper.KeyPressed(Keys.S))
+        {
+            IsSoftDropping = true;
+            baseFallSpeed *= 2;
+        }
+
+        if (inputHelper.KeyReleased(Keys.S))
+        {
+            IsSoftDropping = false;
+            baseFallSpeed /= 2;
+        }
+
+        // non-movement actions
+
+        // Move Block to the lowest possible position, gives bonus points
+        if (inputHelper.KeyPressed(Keys.Space))
+        {
+            HardDrop();
+            timerActive = false;
+        }
+
+        // Rotate Clockwise
+        if (inputHelper.KeyPressed(Keys.E) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
+        {
+            rotationSystem.PerformRotate(SuperRotationSystem.Direction.Clockwise, gridMatrix, shape, location, size, rotation);
+            if (!MoveTest(shape)[2]) timerActive = false;
+        }
+
+        // Rotate CounterClockwise
+        if (inputHelper.KeyPressed(Keys.Q) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
+        {
+            rotationSystem.PerformRotate(SuperRotationSystem.Direction.CounterClockwise, gridMatrix, shape, location, size, rotation);
+            if (!MoveTest(shape)[2]) timerActive = false;
+        }
+
+        // Put the piece in Hold
+        if (inputHelper.KeyPressed(Keys.F))
+        {
+            toHold = true;
+        }
+    }
 
     // draws the shape by testing the shape matrix and then drawing it on screen with the location as offset compared to the targeted grid
     public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
@@ -342,6 +338,7 @@ class T : TetrisBlock
         : base( targetGrid, baseFallSpeed)
     {
         location = new(targetGrid.Width / 2 - 2, 0);
+        startlocation = location;
         shape = new bool[3, 3]{
 
                 {false, true , false},
@@ -351,6 +348,7 @@ class T : TetrisBlock
                 {false, false, false } };
         color = Color.HotPink;
         size = 3;
+        rotationSystem = new SuperRotationSystem(this, targetGrid);
     }
 }
 /// <summary>
@@ -362,6 +360,7 @@ class L : TetrisBlock
         : base(targetGrid, baseFallSpeed)
     {
         location = new(targetGrid.Width / 2 - 2, 0);
+        startlocation = location;
         shape = new bool[3, 3]{
 
                 {true , false, false},
@@ -371,6 +370,7 @@ class L : TetrisBlock
                 {false, false, false}};
         color = Color.Orange;
         size = 3;
+        rotationSystem = new SuperRotationSystem(this, targetGrid);
     }
 }
 /// <summary>
@@ -382,6 +382,7 @@ class J : TetrisBlock
         : base(targetGrid, baseFallSpeed)
     {
         location = new(targetGrid.Width / 2 - 2, 0);
+        startlocation = location;
         shape = new bool[3, 3]{
 
                 {false , false , true },
@@ -391,6 +392,7 @@ class J : TetrisBlock
                 {false, false , false}};
         color = Color.Blue;
         size = 3;
+        rotationSystem = new SuperRotationSystem(this, targetGrid);
     }
 }
 /// <summary>
@@ -402,6 +404,7 @@ class I : TetrisBlock
         : base(targetGrid, baseFallSpeed)
     {
         location = new(targetGrid.Width / 2 - 2, -1);
+        startlocation = location;
         shape = new bool[4, 4]{
                 {false, false, false, false},
 
@@ -412,6 +415,7 @@ class I : TetrisBlock
                 {false, false, false, false}};
         color = Color.Cyan;
         size = 4;
+        rotationSystem = new SuperRotationSystem(this, targetGrid);
     }
 }
 /// <summary>
@@ -423,17 +427,19 @@ class O : TetrisBlock
         : base(targetGrid, baseFallSpeed)
     {
         location = new(targetGrid.Width / 2 - 1, 0);
+        startlocation = location;
         shape = new bool[2, 2]{
                 {true , true },
 
                 {true , true}};
         color = Color.Gold;
         size = 2;
+        rotationSystem = new SuperRotationSystem(this, targetGrid);
     }
 }
 
 /// <summary>
-/// Diagonal Block with left high
+/// The S shaped Tetris Block
 /// </summary>
 class S : TetrisBlock
 {
@@ -441,6 +447,7 @@ class S : TetrisBlock
         : base(targetGrid, baseFallSpeed)
     {
         location = new(targetGrid.Width / 2 - 2, 0);
+        startlocation = location;
         shape = new bool[3, 3]{
 
                 {false, true , true},
@@ -450,10 +457,11 @@ class S : TetrisBlock
                 {false, false, false }};
         color = Color.Green;
         size = 3;
+        rotationSystem = new SuperRotationSystem(this, targetGrid);
     }
 }
 /// <summary>
-/// Diagonal Block with right high
+/// The Z Shaped Tetris block
 /// </summary>
 class Z : TetrisBlock
 {
@@ -461,6 +469,7 @@ class Z : TetrisBlock
         : base(targetGrid, baseFallSpeed)
     {
         location = new(targetGrid.Width / 2 - 2, 0);
+        startlocation = location;
         shape = new bool[3, 3]{
                 {true, true, false },
 
@@ -469,5 +478,6 @@ class Z : TetrisBlock
                 {false, false , false}};
         color = Color.Red;
         size = 3;
+        rotationSystem = new SuperRotationSystem(this, targetGrid);
     }
 }
