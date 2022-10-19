@@ -2,7 +2,14 @@
 using System;
 using System.Data.Common;
 
-public class RotationSystem
+
+
+/// <summary>
+/// This Rotation System is Insipired by the original SRS from the original NES Tetris
+/// </summary>
+
+
+public class SuperRotationSystem
 {
 	public enum Direction { Clockwise, CounterClockwise }
 	
@@ -11,7 +18,7 @@ public class RotationSystem
 	Point location;
 	bool[,] gridMatrix;
 
-	public RotationSystem(TetrisBlock targetBlock, TetrisGrid targetGrid)
+	public SuperRotationSystem(TetrisBlock targetBlock, TetrisGrid targetGrid)
 	{
 		
 		this.targetGrid = targetGrid;
@@ -47,57 +54,19 @@ public class RotationSystem
 	/// <summary>
 	/// Offsets the shape by checking around the shape
 	/// </summary>
-	public void Rotate(Direction dir, bool[,] currentGrid, bool[,] shape, Point location, int size, int rotation)
+	public void PerformRotate(Direction dir, bool[,] currentGrid, bool[,] shape, Point location, int size, int rotation)
 	{
+		// updates the variables
 		gridMatrix = currentGrid;
 		this.location = location;
-        Point[] testList;
-		testList = TestList(size, rotation, dir);
-        bool[,] rotated = new bool[2, 2] { { true, true }, 
-										   { true, true } };
-		// Returns a rotated shape
-        if (dir == Direction.Clockwise && size != 2)
-		{
-            switch (size)
-            {
-                case 3:
-                    rotated = new bool[3, 3]{
-                {shape[2,0], shape[1,0], shape[0,0] },
-                {shape[2,1], shape[1,1], shape[0,1] },
-                {shape[2,2], shape[1,2], shape[0,2] }};
-                    break;
 
-                case 4:
-                    rotated = new bool[4, 4] {
-                {shape[3, 0], shape[2, 0], shape[1, 0], shape[0, 0] },
-                {shape[3, 1], shape[2, 1], shape[1, 1], shape[0, 1] },
-                {shape[3, 2], shape[2, 2], shape[1, 2], shape[0, 2] },
-                {shape[3, 3], shape[2, 3], shape[1, 3], shape[0, 3] }};
-                    break;
-            }
-        }
+		// Returns list of offsets to attempt
+        Point[] testList = TestList(size, rotation, dir);
 
-		if (dir == Direction.CounterClockwise && size != 2)
-		{
-            switch (size)
-            {
-                case 3:
-                    rotated = new bool[3, 3] {
-                {shape[0, 2], shape[1, 2], shape[2, 2]},
-                {shape[0, 1], shape[1, 1], shape[2, 1]},
-                {shape[0, 0], shape[1, 0], shape[2, 0]}};
-                    break;
-
-                case 4:
-                    rotated = new bool[4, 4] {
-                {shape[0, 3], shape[1, 3], shape[2, 3], shape[3, 3] },
-                {shape[0, 2], shape[1, 2], shape[2, 2], shape[3, 2] },
-                {shape[0, 1], shape[1, 1], shape[2, 1], shape[3, 1] },
-                {shape[0, 0], shape[1, 0], shape[2, 0], shape[3, 0] }};
-                    break;
-            }
-        }
-
+        // Returns a rotated shape
+        bool[,] rotated = RotateShape(dir, shape, size);
+		
+        
 		// checks wallkick offsets
 		for (int i = 0; i < testList.Length; i++)
 		{
@@ -105,6 +74,7 @@ public class RotationSystem
 			{
 				if (dir == Direction.Clockwise && rotation < 3) targetBlock.Rotation += 1;
 				else if (dir == Direction.Clockwise) targetBlock.Rotation = 0;
+
 				if (dir == Direction.CounterClockwise && rotation > 0) targetBlock.Rotation -= 1;
 				else if (dir == Direction.CounterClockwise) targetBlock.Rotation = 3;
                 targetBlock.Location += testList[i];
@@ -112,6 +82,54 @@ public class RotationSystem
 				break;
 			}
 		}
+    }
+
+	public bool[,] RotateShape(Direction dir, bool[,] shape, int size)
+	{
+		bool[,] result = new bool[2, 2] { { true, true },
+                                          { true, true } };
+        if (dir == Direction.Clockwise && size != 2)
+		{
+            switch (size)
+            {
+                case 3:
+                    result = new bool[3, 3]{
+                {shape[2,0], shape[1,0], shape[0,0] },
+                {shape[2,1], shape[1,1], shape[0,1] },
+                {shape[2,2], shape[1,2], shape[0,2] }};
+                    break;
+
+                case 4:
+                    result = new bool[4, 4] {
+                {shape[3, 0], shape[2, 0], shape[1, 0], shape[0, 0] },
+                {shape[3, 1], shape[2, 1], shape[1, 1], shape[0, 1] },
+                {shape[3, 2], shape[2, 2], shape[1, 2], shape[0, 2] },
+                {shape[3, 3], shape[2, 3], shape[1, 3], shape[0, 3] }};
+                    break;
+			}
+		}
+
+        if (dir == Direction.CounterClockwise && size != 2)
+		{
+            switch (size)
+            {
+                case 3:
+                    result = new bool[3, 3] {
+                {shape[0, 2], shape[1, 2], shape[2, 2]},
+                {shape[0, 1], shape[1, 1], shape[2, 1]},
+                {shape[0, 0], shape[1, 0], shape[2, 0]}};
+                    break;
+
+                case 4:
+                    result = new bool[4, 4] {
+                {shape[0, 3], shape[1, 3], shape[2, 3], shape[3, 3] },
+                {shape[0, 2], shape[1, 2], shape[2, 2], shape[3, 2] },
+                {shape[0, 1], shape[1, 1], shape[2, 1], shape[3, 1] },
+                {shape[0, 0], shape[1, 0], shape[2, 0], shape[3, 0] }};
+                    break;
+            }
+        }
+		return result;
     }
 
 	/// <summary>

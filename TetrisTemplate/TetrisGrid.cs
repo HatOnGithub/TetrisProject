@@ -19,7 +19,7 @@ public class TetrisGrid
 
     private const int width = 10;
 
-    private const int height = 20;
+    private const int height = 22;
     
     public bool[,] gridMatrix = new bool[height, width];
     public Color[,] colorMatrix = new Color[height, width];
@@ -42,7 +42,7 @@ public class TetrisGrid
     {
         emptyCell = TetrisGame.ContentManager.Load<Texture2D>("grid");
         filledCell = TetrisGame.ContentManager.Load<Texture2D>("block");
-        position = new Vector2(TetrisGame.ScreenSize.X/2 - 5 * emptyCell.Width, TetrisGame.ScreenSize.Y/2 - 10 * emptyCell.Height);
+        position = new Vector2(TetrisGame.ScreenSize.X/2 - width/2 * emptyCell.Width, TetrisGame.ScreenSize.Y/2 - height/2 * emptyCell.Height);
     }
 
     /// <summary>
