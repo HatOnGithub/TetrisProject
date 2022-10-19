@@ -13,11 +13,14 @@ class GameWorld
 
     int level = 0;
 
+    int totalLinesCleared = 0;
+
     const int basefallspeed = 4;
 
     bool started = false;
 
     bool cannotSpawn = false;
+
 
     /// <summary>
     /// An enum for the different game states that the game can have.
@@ -98,14 +101,16 @@ class GameWorld
                 {
                     if (block.HasCommitedToGrid)
                     {
-                        grid.FullLines(level, block.lowestPoint);
-                        CycleBlock();
+                        HandleScore();
+                        HandleLevels();
                     }
                     if (cannotSpawn) 
                     {
                         started = false;
                         block = null;
                         cannotSpawn = false;
+                        score = 0;
+                        level = 0;
                         break;
                     } 
                     block.Update(gameTime);
@@ -122,7 +127,7 @@ class GameWorld
             case GameState.Playing:
                 grid.Draw(gameTime, spriteBatch);
                 nextUpGrid.Draw(gameTime, spriteBatch);
-
+                spriteBatch.DrawString(font, "Score: " + score.ToString(), Vector2.Zero, Color.White);
                 if (started) block.Draw(gameTime, spriteBatch);
 
                 break;
@@ -189,6 +194,39 @@ class GameWorld
                 break;
         }
         return result;
+    }
+
+    public void HandleScore()
+    {
+        int l = grid.FullLines(block.lowestPoint);
+        if (l > 0)
+        {
+            switch (l)
+            {
+                case 1:
+                    score += 40 * (level + 1);
+                    break;
+                case 2:
+                    score += 100 * (level + 1);
+                    break;
+                case 3:
+                    score += 300 * (level + 1);
+                    break;
+                case 4:
+                    score += 1200 * (level + 1);
+                    break;
+            }
+
+        }
+        totalLinesCleared += l;
+        if (block.HardDropped) score += block.CellsDroppedBonus * 2;
+        else score += block.CellsDroppedBonus;
+        CycleBlock();
+    }
+
+    public void HandleLevels()
+    {
+
     }
 
     public void Reset()

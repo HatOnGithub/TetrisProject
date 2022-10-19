@@ -79,15 +79,11 @@ public class TetrisGrid
 
 
     /// <summary>
-    /// Returns the points gained depending on lines cleared and points gained
-    /// Level should start at 0
+    /// Returns the amount of full lines and clears the lines off the grid
     /// </summary>
-    /// <param name="n"></param>
-    /// <returns></returns>
-    public int FullLines(int n, int lowestPointOfBlock) 
+    public int FullLines(int lowestPointOfBlock) 
     {
         int l = 0;
-        int result = 0;
         List<int> linesToClear = new List<int>();
         for (int y = lowestPointOfBlock; y >= 0; y--) 
         {
@@ -97,28 +93,8 @@ public class TetrisGrid
                 linesToClear.Add(y);
             }
         }
-
-        if (l > 0) 
-        {
-            switch (l)
-            {
-                case 1:
-                    result = 40 * (n + 1);
-                    break;
-                case 2:
-                    result = 100 * (n + 1);
-                    break;
-                case 3:
-                    result = 300 * (n + 1);
-                    break;
-                case 4:
-                    result = 1200 * (n + 1);
-                    break;
-            }
-            ClearLines(linesToClear);
-        } 
-
-        return result;
+        if (l > 0) ClearLines(linesToClear);
+        return l;
     }
 
     /// <summary>

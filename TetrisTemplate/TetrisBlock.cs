@@ -3,23 +3,29 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Linq;
+using System.Threading;
 
 public class TetrisBlock
 {
     /// <summary>
     /// Shape of the current Tetris block as a 2D bool array
     /// </summary>
-    public bool[,] Shape { get { return shape; } }
+    public bool[,] Shape { get { return shape; } set { shape = value; } }
     
     /// <summary>
     /// Size of the shape
     /// </summary>
     public int Size { get { return size; } }
+
+    /// <summary>
+    /// Rotation
+    /// </summary>
+    public int Rotation { get { return rotation; } set { rotation = value; } }
     
     /// <summary>
     /// Current location on the grid as a Point
     /// </summary>
-    public Point Location { get { return location; } }
+    public Point Location { get { return location; } set { location = value; } }
 
     /// <summary>
     /// Returns the color of the Tetris Block
@@ -33,9 +39,11 @@ public class TetrisBlock
     public bool HasCommitedToGrid { get { return hasCommitedToGrid; } }
     private bool hasCommitedToGrid = false;
 
-
+    public bool HardDropped = false;
+    public int CellsDroppedBonus = 0;
     public int lowestPoint;
-
+    protected bool IsSoftDropping = false;
+    protected int rotation;
     protected float baseFallSpeed;
     protected bool[,] shape;
     protected int size;
@@ -52,6 +60,9 @@ public class TetrisBlock
 
     // texture of the block
     protected Texture2D sprite;
+
+    // Rotation System
+    protected RotationSystem rotationSystem;
 
     // timer values
     protected int lastTime = 0;
@@ -72,6 +83,7 @@ public class TetrisBlock
         gridMatrix = targetGrid.gridMatrix;
         this.baseFallSpeed = baseFallSpeed;
         sprite = TetrisGame.ContentManager.Load<Texture2D>("block");
+        rotation = 0;
     }
 
     
@@ -83,12 +95,12 @@ public class TetrisBlock
     public void InputHandler(InputHelper inputHelper)
     {
         // movement
-        if (inputHelper.KeyPressed(Keys.A))
+        if (inputHelper.KeyPressed(Keys.A) && (!inputHelper.KeyPressed(Keys.Right)|| inputHelper.KeyPressed(Keys.Left)))
         {
             if (MoveTest(shape)[3]) location.X -= 1;
             if (!MoveTest(shape)[2]) timerActive = false;
         }
-        if (inputHelper.KeyPressed(Keys.D))
+        if (inputHelper.KeyPressed(Keys.D) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
         {
             if (MoveTest(shape)[1]) location.X += 1;
             if (!MoveTest(shape)[2]) timerActive = false;
@@ -96,20 +108,14 @@ public class TetrisBlock
 
         if (inputHelper.KeyPressed(Keys.S))
         {
+            IsSoftDropping = true;
             baseFallSpeed *= 2;
         }
         if (inputHelper.KeyReleased(Keys.S))
         {
+            IsSoftDropping = false;
             baseFallSpeed /= 2;
         }
-
-        // for debugging
-        if (inputHelper.KeyPressed(Keys.W))
-        {
-            if (MoveTest(shape)[0]) location.Y -= 1;
-            timerActive = false;
-        }
-
 
         // non-movement actions
         if (inputHelper.KeyPressed(Keys.Space))
@@ -117,16 +123,16 @@ public class TetrisBlock
             HardDrop();
         }
 
-        if (inputHelper.KeyPressed(Keys.Right))
+        if (inputHelper.KeyPressed(Keys.Right) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
         {
-            RotateCW();
-            timerActive = false;
+            rotationSystem.Rotate(RotationSystem.Direction.Clockwise, gridMatrix, shape, location, size, rotation);
+            if (!MoveTest(shape)[2]) timerActive = false;
         }
 
-        if (inputHelper.KeyPressed(Keys.Left))
+        if (inputHelper.KeyPressed(Keys.Left) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
         {
-            RotateCCW();
-            timerActive = false;
+            rotationSystem.Rotate(RotationSystem.Direction.CounterClockwise, gridMatrix, shape, location, size, rotation);
+            if (!MoveTest(shape)[2]) timerActive = false;
         }
 
     }
@@ -135,12 +141,14 @@ public class TetrisBlock
     /// </summary>
     protected void HardDrop()
     {
-        for (int y = location.Y; y < targetGrid.Height; y++)
+        int start = location.Y;
+        for (int y = start; y < targetGrid.Height; y++)
         {
             location.Y = y;
             if (!MoveTest(shape)[2])
             {
-                CommitToGrid();
+                CellsDroppedBonus = y - start;
+                HardDropped = true;
                 break;
             }
         }
@@ -155,9 +163,6 @@ public class TetrisBlock
         // sets all values to true
         bool[] canMoveTo = Enumerable.Repeat<bool>(true, 4).ToArray(); 
 
-        // if the entry point for a block is filled, can't move down
-        if (gridMatrix[0, targetGrid.Width / 2] || gridMatrix[0, targetGrid.Width / 2 + 1]) canMoveTo[2] = false; 
-
         // goes through the shape
         for (int y = location.Y; y < location.Y + size; y++)
         {
@@ -169,6 +174,7 @@ public class TetrisBlock
                 {
                     // This part has to be nested else you get problems with indexes being out of range
                     // It checks if a part of the shape is present within the given coordinates
+                    if (x < 0) continue;
                     if (testshape[y - location.Y, x - location.X]) 
                     {
                         // this part tests for "edge" cases (see what i did there?)
@@ -194,65 +200,6 @@ public class TetrisBlock
             }
         }
         return canMoveTo;
-    }
-
-
-    /// <summary>
-    /// Rotates shape ClockWise, Test() built in, no need to call it seperately
-    /// </summary>
-    protected void RotateCW()
-    {
-        if (size != 2) // because rotationg a square doesn't do anything
-        {
-            bool[,] rotated = new bool[0,0];
-            switch (size)
-            {
-                case 3: rotated = new bool[3, 3]{
-                    {shape[2,0], shape[1,0], shape[0,0] },
-                    {shape[2,1], shape[1,1], shape[0,1] },
-                    {shape[2,2], shape[1,2], shape[0,2] }};
-                    break;
-
-                case 4: rotated = new bool[4, 4] {
-                    {shape[3, 0], shape[2, 0], shape[1, 0], shape[0, 0] },
-                    {shape[3, 1], shape[2, 1], shape[1, 1], shape[0, 1] },
-                    {shape[3, 2], shape[2, 2], shape[1, 2], shape[0, 2] },
-                    {shape[3, 3], shape[2, 3], shape[1, 3], shape[0, 3] }};
-                    break;
-            }
-            shape = rotated;
-        }
-
-    }
-
-    /// <summary>
-    /// Rotates shape Counter ClockWise, Test() built in, no need to call it seperately
-    /// </summary>
-    protected void RotateCCW()
-    {
-        if (size != 2) // because rotating a square doesn't do anything
-        {
-            bool[,] rotated = new bool[0, 0];
-
-            switch (size)
-            {
-                case 3:
-                    rotated = new bool[3, 3] {
-                    {shape[0, 2], shape[1, 2], shape[2, 2]},
-                    {shape[0, 1], shape[1, 1], shape[2, 1]},
-                    {shape[0, 2], shape[1, 0], shape[2, 0]}};
-                    break;
-
-                case 4:
-                    rotated = new bool[4, 4] {
-                    {shape[0, 3], shape[1, 3], shape[2, 3], shape[3, 3] },
-                    {shape[0, 2], shape[1, 2], shape[2, 2], shape[3, 2] },
-                    {shape[0, 1], shape[1, 1], shape[2, 1], shape[3, 1] },
-                    {shape[0, 0], shape[1, 0], shape[2, 0], shape[3, 0] }};
-                    break;
-            }
-            shape = rotated;
-        }
     }
 
     /// <summary>
@@ -298,6 +245,7 @@ public class TetrisBlock
                     {
                         location.Y += 1;
                         timerActive = false;
+                        if (IsSoftDropping) CellsDroppedBonus += 1; 
                     }
                     else if (currentTime >= lastTime + 500)
                     {
@@ -350,6 +298,7 @@ class T : TetrisBlock
                 {false, false, false } };
         color = Color.HotPink;
         size = 3;
+        rotationSystem = new RotationSystem(this, targetGrid);
     }
 }
 /// <summary>
@@ -370,6 +319,7 @@ class L : TetrisBlock
                 {false, false, false}};
         color = Color.Orange;
         size = 3;
+        rotationSystem = new RotationSystem(this, targetGrid);
     }
 }
 /// <summary>
@@ -390,6 +340,7 @@ class J : TetrisBlock
                 {false, false , false}};
         color = Color.Blue;
         size = 3;
+        rotationSystem = new RotationSystem(this, targetGrid);
     }
 }
 /// <summary>
@@ -411,6 +362,7 @@ class I : TetrisBlock
                 {false, false, false, false}};
         color = Color.Cyan;
         size = 4;
+        rotationSystem = new RotationSystem(this, targetGrid);
     }
 }
 /// <summary>
@@ -428,6 +380,7 @@ class O : TetrisBlock
                 {true , true}};
         color = Color.Gold;
         size = 2;
+        rotationSystem = new RotationSystem(this, targetGrid);
     }
 }
 
@@ -449,6 +402,7 @@ class S : TetrisBlock
                 {false, false, false }};
         color = Color.Green;
         size = 3;
+        rotationSystem = new RotationSystem(this, targetGrid);
     }
 }
 /// <summary>
@@ -468,5 +422,6 @@ class Z : TetrisBlock
                 {false, false , false}};
         color = Color.Red;
         size = 3;
+        rotationSystem = new RotationSystem(this, targetGrid);
     }
 }
