@@ -80,16 +80,14 @@ public class TetrisGrid
         gridMatrix = new bool[height, width];
     }
 
-
-
     /// <summary>
     /// Returns the amount of full lines and clears the lines off the grid
     /// </summary>
-    public int FullLines(int lowestPointOfBlock) 
+    public int FullLines(int lowestPointOfBlock, int highestPointOfBlock) 
     {
         int l = 0;
         List<int> linesToClear = new List<int>();
-        for (int y = lowestPointOfBlock; y >= 0; y--) 
+        for (int y = lowestPointOfBlock; y >= highestPointOfBlock; y--) 
         {
             if (IsFilled(y))
             {

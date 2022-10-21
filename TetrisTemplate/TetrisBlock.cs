@@ -42,8 +42,7 @@ public class TetrisBlock
     protected Color color;
     
     /// <summary>
-    /// If the shapeToGrid() method has been called [0] shows true
-    /// If the shape is outside of bounds when it cannot move down, [1] shows true (loss condition)
+    /// If the shapeToGrid() method has been called: shows true
     /// </summary>
     public bool HasCommitedToGrid { get { return hasCommitedToGrid; } }
     private bool hasCommitedToGrid = false;
@@ -54,22 +53,30 @@ public class TetrisBlock
     public bool ToHold { get { return toHold; } set { toHold = value; } }
     protected bool toHold = false;
 
+
     // Score Modifiers (HardDropped and CellsDroppedBonus)
     public bool HardDropped { get { return hardDropped; } }
     protected bool hardDropped = false;
-
+    
+    // Bool to turn on softdropping bonus counting
+    protected bool IsSoftDropping = false;
     public int CellsDroppedBonus { get { return cellsDroppedBonus; } }
     protected int cellsDroppedBonus = 0;
     
-    // Lowest point of the block after commiting
+
+
+    // Highest and Lowest point of the block after commiting
+    public int HighestPoint { get { return highestPoint; } }
     public int LowestPoint { get { return lowestPoint; } }
+    protected int highestPoint = 0;
     protected int lowestPoint = 0;
 
-    // Bool to turn on softdropping bonus counting
-    protected bool IsSoftDropping = false;
     
     // What speed the ball should fall
-    protected float baseFallSpeed;
+    protected int framesPerCell;
+
+    // How long it takes for the block to commit to grid
+    int lockDelay = 500;
 
     // stores which grid the block is bound to
     protected TetrisGrid targetGrid;
@@ -86,30 +93,26 @@ public class TetrisBlock
     // Rotation System
     protected SuperRotationSystem rotationSystem;
 
-    // timer values
-    protected int lastTime = 0;
-    protected int currentTime;
-    bool timerActive = false;
-
+    // Timing system
+    protected TimeHelper timeHelper;
 
     /// <summary>
     /// sets starting values
     /// </summary>
     /// <param name="targetGrid"></param>
     /// <param name="location"></param>
-    /// <param name="baseFallSpeed"></param>
-    public TetrisBlock(TetrisGrid targetGrid, float baseFallSpeed)
+    /// <param name="framesPerCell"></param>
+    public TetrisBlock(TetrisGrid targetGrid, int framesPerCell)
     {
         // sets the target grid and starting values
         this.targetGrid = targetGrid;
         gridMatrix = targetGrid.gridMatrix;
-        this.baseFallSpeed = baseFallSpeed;
+        this.framesPerCell = framesPerCell;
         sprite = TetrisGame.ContentManager.Load<Texture2D>("block");
         rotation = 0;
-    }
+        timeHelper = new TimeHelper();
 
-    
-	
+    }
     
     /// <summary>
     /// Moves the block to the lowest possible position
@@ -204,15 +207,44 @@ public class TetrisBlock
     /// </summary>
     public void ReturnFromHold()
     {
-        timerActive = false;
+        timeHelper.TimerReset();
         location = startlocation;
     }
 
+    /// <summary>
+    /// does the gravity
+    /// </summary>
+    protected void Gravity()
+    {
+        if (timeHelper.TimerHasReachedFrames(framesPerCell))
+        {
+            if (MoveTest(shape)[2])
+            {
+                location.Y += 1;
+                if (IsSoftDropping) cellsDroppedBonus += 1;
+                timeHelper.TimerReset();
+            }
+            else if (timeHelper.TimerHasReached(lockDelay))
+            {
+                CommitToGrid();
+                timeHelper.TimerReset();
+            }
+        }
+    }
 
+    /// <summary>
+    /// Resets rotation
+    /// </summary>
+    /// <param name="rotation"></param>
+    public void ResetRotation(int rotation)
+    {
+        while (rotation > 0)
+        {
+            rotationSystem.PerformRotate(SuperRotationSystem.Direction.CounterClockwise, gridMatrix, shape, location, size, rotation);
+            rotation -= 1;
+        }
 
-
-
-
+    }
 
     /// <summary>
     /// Does Physics stuff
@@ -220,32 +252,8 @@ public class TetrisBlock
     /// <param name="gameTime"></param>
     public void Update(GameTime gameTime)
     {
-        
-        switch (timerActive)
-        {
-            case false:
-                lastTime = (int)gameTime.TotalGameTime.TotalMilliseconds;
-                timerActive = true;
-                break;
-            case true:
-                currentTime = (int)gameTime.TotalGameTime.TotalMilliseconds;
-                if (currentTime >= lastTime + (1000 / baseFallSpeed))
-                {
-                    if (MoveTest(shape)[2])
-                    {
-                        location.Y += 1;
-                        timerActive = false;
-                        if (IsSoftDropping) cellsDroppedBonus += 1; 
-                    }
-                    else if (currentTime >= lastTime + 500)
-                    {
-                        CommitToGrid();
-                        timerActive = false;
-                    }
-                }
-                break;
-        }
-
+        timeHelper.Update(gameTime);
+        Gravity();
     }
 
     /// <summary>
@@ -258,13 +266,13 @@ public class TetrisBlock
         if (inputHelper.KeyPressed(Keys.A) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
         {
             if (MoveTest(shape)[3]) location.X -= 1;
-            if (!MoveTest(shape)[2]) timerActive = false;
+            if (!MoveTest(shape)[2]) timeHelper.TimerReset();
         }
         // move right
         if (inputHelper.KeyPressed(Keys.D) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
         {
             if (MoveTest(shape)[1]) location.X += 1;
-            if (!MoveTest(shape)[2]) timerActive = false;
+            if (!MoveTest(shape)[2]) timeHelper.TimerReset();
         }
 
 
@@ -272,13 +280,13 @@ public class TetrisBlock
         if (inputHelper.KeyPressed(Keys.S))
         {
             IsSoftDropping = true;
-            baseFallSpeed *= 2;
+            framesPerCell /= 2;
         }
 
         if (inputHelper.KeyReleased(Keys.S))
         {
             IsSoftDropping = false;
-            baseFallSpeed /= 2;
+            framesPerCell *= 2;
         }
 
         // non-movement actions
@@ -287,21 +295,23 @@ public class TetrisBlock
         if (inputHelper.KeyPressed(Keys.Space))
         {
             HardDrop();
-            timerActive = false;
+            timeHelper.TimerReset();
         }
 
         // Rotate Clockwise
         if (inputHelper.KeyPressed(Keys.E) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
         {
             rotationSystem.PerformRotate(SuperRotationSystem.Direction.Clockwise, gridMatrix, shape, location, size, rotation);
-            if (!MoveTest(shape)[2]) timerActive = false;
+            rotation += 1;
+            if (!MoveTest(shape)[2]) timeHelper.TimerReset();
         }
 
         // Rotate CounterClockwise
         if (inputHelper.KeyPressed(Keys.Q) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
         {
             rotationSystem.PerformRotate(SuperRotationSystem.Direction.CounterClockwise, gridMatrix, shape, location, size, rotation);
-            if (!MoveTest(shape)[2]) timerActive = false;
+            rotation -= 1;
+            if (!MoveTest(shape)[2]) timeHelper.TimerReset();
         }
 
         // Put the piece in Hold
@@ -330,6 +340,9 @@ public class TetrisBlock
     }
 }
 
+
+
+
 // Subclasses for each possible shape
 
 /// <summary>
@@ -337,8 +350,8 @@ public class TetrisBlock
 /// </summary>
 class T : TetrisBlock
 {
-    public T(TetrisGrid targetGrid, float baseFallSpeed)
-        : base( targetGrid, baseFallSpeed)
+    public T(TetrisGrid targetGrid, int framesPerCell)
+        : base( targetGrid, framesPerCell)
     {
         location = new(targetGrid.Width / 2 - 2, 0);
         startlocation = location;
@@ -354,12 +367,13 @@ class T : TetrisBlock
         rotationSystem = new SuperRotationSystem(this, targetGrid);
     }
 }
+
 /// <summary>
 /// L Block
 /// </summary>
 class L : TetrisBlock
 {
-    public L(TetrisGrid targetGrid, float baseFallSpeed)
+    public L(TetrisGrid targetGrid, int baseFallSpeed)
         : base(targetGrid, baseFallSpeed)
     {
         location = new(targetGrid.Width / 2 - 2, 0);
@@ -376,12 +390,13 @@ class L : TetrisBlock
         rotationSystem = new SuperRotationSystem(this, targetGrid);
     }
 }
+
 /// <summary>
 /// Flipped L Block
 /// </summary>
 class J : TetrisBlock
 {
-    public J(TetrisGrid targetGrid, float baseFallSpeed)
+    public J(TetrisGrid targetGrid, int baseFallSpeed)
         : base(targetGrid, baseFallSpeed)
     {
         location = new(targetGrid.Width / 2 - 2, 0);
@@ -398,12 +413,13 @@ class J : TetrisBlock
         rotationSystem = new SuperRotationSystem(this, targetGrid);
     }
 }
+
 /// <summary>
 /// Long BLock
 /// </summary>
 class I : TetrisBlock
 {
-    public I(TetrisGrid targetGrid, float baseFallSpeed)
+    public I(TetrisGrid targetGrid, int baseFallSpeed)
         : base(targetGrid, baseFallSpeed)
     {
         location = new(targetGrid.Width / 2 - 2, -1);
@@ -421,12 +437,13 @@ class I : TetrisBlock
         rotationSystem = new SuperRotationSystem(this, targetGrid);
     }
 }
+
 /// <summary>
 /// Square Block
 /// </summary>
 class O : TetrisBlock
 {
-    public O(TetrisGrid targetGrid, float baseFallSpeed)
+    public O(TetrisGrid targetGrid, int baseFallSpeed)
         : base(targetGrid, baseFallSpeed)
     {
         location = new(targetGrid.Width / 2 - 1, 0);
@@ -446,7 +463,7 @@ class O : TetrisBlock
 /// </summary>
 class S : TetrisBlock
 {
-    public S(TetrisGrid targetGrid, float baseFallSpeed)
+    public S(TetrisGrid targetGrid, int baseFallSpeed)
         : base(targetGrid, baseFallSpeed)
     {
         location = new(targetGrid.Width / 2 - 2, 0);
@@ -463,13 +480,14 @@ class S : TetrisBlock
         rotationSystem = new SuperRotationSystem(this, targetGrid);
     }
 }
+
 /// <summary>
 /// The Z Shaped Tetris block
 /// </summary>
 class Z : TetrisBlock
 {
-    public Z(TetrisGrid targetGrid, float baseFallSpeed)
-        : base(targetGrid, baseFallSpeed)
+    public Z(TetrisGrid targetGrid, int framesPerCell)
+        : base(targetGrid, framesPerCell)
     {
         location = new(targetGrid.Width / 2 - 2, 0);
         startlocation = location;

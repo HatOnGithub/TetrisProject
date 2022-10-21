@@ -14,6 +14,7 @@ public class NextUpGrid
     private const int height = 8;
 
     public bool[,] gridMatrix = new bool[height, width];
+
     Color[,] colorMatrix = new Color[height, width];
 
     public NextUpGrid()
@@ -23,6 +24,11 @@ public class NextUpGrid
     }
 
     public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+    {
+        DrawMatrix(gameTime, spriteBatch);
+    }
+
+    private void DrawMatrix(GameTime gameTime, SpriteBatch spriteBatch)
     {
         for (int i = 0; i < height; i++)
         {
@@ -35,9 +41,13 @@ public class NextUpGrid
             }
         }
     }
+
     public void Refresh(TetrisBlock nextblock, TetrisBlock holdBlock)
     {
+        // new blank matrix
         gridMatrix = new bool[height, width];
+
+        // populate matrix with new data 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
@@ -51,6 +61,7 @@ public class NextUpGrid
                         colorMatrix[y, x] = nextblock.Color;
                     }
                 }
+
                 // set the block in holding
                 if (y > 3 && holdBlock != null && y - 4 < holdBlock.Size && x < holdBlock.Size)
                 {
@@ -60,7 +71,6 @@ public class NextUpGrid
                         colorMatrix[y, x] = holdBlock.Color;
                     }
                 }
-
             }
         }
     }

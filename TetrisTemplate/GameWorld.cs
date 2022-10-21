@@ -16,9 +16,9 @@ class GameWorld
 
     int totalLinesCleared = 0;
 
-    int basefallspeed = 2;
+    int basefallspeed = 48;
 
-    float fallspeed;
+    int framesPerCell;
 
     bool started = false;
 
@@ -86,7 +86,7 @@ class GameWorld
         random = new Random();
         gameState = GameState.Playing;
 
-        fallspeed = basefallspeed;
+        framesPerCell = basefallspeed;
 
         font = TetrisGame.ContentManager.Load<SpriteFont>("SpelFont");
 
@@ -242,19 +242,19 @@ class GameWorld
         int i = random.Next(1, 8);
         switch (i)
         {
-            case 1: result = new T(grid, fallspeed);
+            case 1: result = new T(grid, framesPerCell);
                 break;
-            case 2: result = new L(grid, fallspeed);
+            case 2: result = new L(grid, framesPerCell);
                 break;
-            case 3: result = new J(grid, fallspeed);
+            case 3: result = new J(grid, framesPerCell);
                 break;
-            case 4: result = new I(grid, fallspeed);
+            case 4: result = new I(grid, framesPerCell);
                 break;
-            case 5: result = new O(grid, fallspeed);
+            case 5: result = new O(grid, framesPerCell);
                 break;
-            case 6: result = new S(grid, fallspeed);
+            case 6: result = new S(grid, framesPerCell);
                 break;
-            case 7: result = new Z(grid, fallspeed);
+            case 7: result = new Z(grid, framesPerCell);
                 break;
         }
         return result;
@@ -265,7 +265,7 @@ class GameWorld
     /// </summary>
     public void HandleScore()
     {
-        int l = grid.FullLines(block.LowestPoint);
+        int l = grid.FullLines(block.LowestPoint, block.HighestPoint);
         if (l > 0)
         {
             switch (l)
@@ -288,6 +288,7 @@ class GameWorld
         totalLinesCleared += l;
         if (block.HardDropped) score += block.CellsDroppedBonus * 2;
         else score += block.CellsDroppedBonus;
+
         CycleBlock();
     }
 
@@ -300,12 +301,22 @@ class GameWorld
         {10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
          100, 100, 100, 100, 100, 100, 110, 120, 130, 140,
          150, 160, 170, 180, 190, 200, 200, 200, 200, -1};
+
+        int[] speedPerLevel = new int[30]
+        {48, 43, 38, 33, 28, 23, 18, 13, 8, 6,
+         5, 5, 4, 4, 4, 3, 3, 3, 3, 2,
+         2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
         if (totalLinesCleared >= LinesBeforeIncrease[level] && LinesBeforeIncrease[level] != -1)
         {
             totalLinesCleared -= LinesBeforeIncrease[level];
             level += 1;
-            fallspeed += 0.5f;
+            framesPerCell = speedPerLevel[level];
         }
+    }
+
+    public void SaveHighScore()
+    {
+
     }
 
     /// <summary>
