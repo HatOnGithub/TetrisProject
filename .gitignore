@@ -2,4 +2,7 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/.vs
+/.vs/ProjectEvaluation
+/.vs/TetrisProject
+/.vs/TetrisTemplate/FileContentIndex
+/.vs/v17
