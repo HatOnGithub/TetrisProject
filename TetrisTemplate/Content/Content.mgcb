@@ -37,6 +37,18 @@
 /processorParam:TextureFormat=Color
 /build:grid.png
 
+#begin lineclear.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:lineclear.wav
+
+#begin lockblock.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:lockblock.wav
+
 #begin SpelFont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor

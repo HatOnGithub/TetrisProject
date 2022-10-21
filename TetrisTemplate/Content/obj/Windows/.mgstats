@@ -1,4 +1,3 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"C:/Users/LeHat/source/repos/HatOnGithub/TetrisProject/TetrisTemplate/Content/block.png","C:/Users/LeHat/source/repos/HatOnGithub/TetrisProject/TetrisTemplate/Content/bin/Windows/block.xnb","TextureProcessor","Texture2DContent",472,3685,0.1024436
-"C:/Users/LeHat/source/repos/HatOnGithub/TetrisProject/TetrisTemplate/Content/grid.png","C:/Users/LeHat/source/repos/HatOnGithub/TetrisProject/TetrisTemplate/Content/bin/Windows/grid.xnb","TextureProcessor","Texture2DContent",338,3685,0.0014266
-"C:/Users/LeHat/source/repos/HatOnGithub/TetrisProject/TetrisTemplate/Content/SpelFont.spritefont","C:/Users/LeHat/source/repos/HatOnGithub/TetrisProject/TetrisTemplate/Content/bin/Windows/SpelFont.xnb","FontDescriptionProcessor","SpriteFontContent",2068,21535,0.0803538
+"C:/Users/ETils/source/repos/TetrisProject/TetrisTemplate/Content/lineclear.wav","C:/Users/ETils/source/repos/TetrisProject/TetrisTemplate/Content/bin/Windows/lineclear.xnb","SoundEffectProcessor","SoundEffectContent",258696,258757,0,8724293
+"C:/Users/ETils/source/repos/TetrisProject/TetrisTemplate/Content/lockblock.wav","C:/Users/ETils/source/repos/TetrisProject/TetrisTemplate/Content/bin/Windows/lockblock.xnb","SoundEffectProcessor","SoundEffectContent",15058,15118,0,38058

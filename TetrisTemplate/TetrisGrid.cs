@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,9 @@ public class TetrisGrid
     Texture2D emptyCell;
     /// the sprite of a filled cell on the grid
     Texture2D filledCell;
+
+    // the sound for clearing a line of blocks
+    protected SoundEffect lineclear;
 
     /// The position at which this TetrisGrid should be drawn.
     Vector2 position;

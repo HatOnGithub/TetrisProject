@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -71,6 +72,12 @@ class GameWorld
     /// </summary>
     NextUpGrid nextUpGrid;
 
+    // play the sound for clearing a full line on blocks
+    protected SoundEffect lineclear;
+
+    // sound for locking shape to grid
+    protected SoundEffect locksound;
+
     /// <summary>
     /// Hey, you called me?
     /// </summary>
@@ -82,6 +89,10 @@ class GameWorld
         fallspeed = basefallspeed;
 
         font = TetrisGame.ContentManager.Load<SpriteFont>("SpelFont");
+
+        lineclear = TetrisGame.ContentManager.Load<SoundEffect>("lineclear");
+
+        locksound = TetrisGame.ContentManager.Load<SoundEffect>("lockblock");
 
         grid = new TetrisGrid();
 
@@ -138,6 +149,7 @@ class GameWorld
                     }
                     if (block.HasCommitedToGrid)
                     {
+                        locksound.Play();
                         HandleScore();
                         HandleLevels();
                     }
@@ -271,7 +283,7 @@ class GameWorld
                     score += 1200 * (level + 1);
                     break;
             }
-
+            lineclear.Play();
         }
         totalLinesCleared += l;
         if (block.HardDropped) score += block.CellsDroppedBonus * 2;
