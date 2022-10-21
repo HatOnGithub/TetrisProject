@@ -41,6 +41,15 @@ public class InputHelper
     }
 
     /// <summary>
+    /// Returns whether or not the right mouse button has just been pressed.
+    /// </summary>
+    /// <returns></returns>
+    public bool MouseRightButtonPressed()
+    {
+        return currentMouseState.RightButton == ButtonState.Pressed && previousMouseState.RightButton == ButtonState.Released;
+    }
+
+    /// <summary>
     /// Returns whether or not a given keyboard key has just been pressed.
     /// </summary>
     /// <param name="k">The key to check.</param>
