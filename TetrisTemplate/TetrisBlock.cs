@@ -236,12 +236,12 @@ public class TetrisBlock
     /// Resets rotation
     /// </summary>
     /// <param name="rotation"></param>
-    public void ResetRotation(int rotation)
+    public void ResetRotation()
     {
         while (rotation > 0)
         {
             rotationSystem.PerformRotate(SuperRotationSystem.Direction.CounterClockwise, gridMatrix, shape, location, size, rotation);
-            rotation -= 1;
+            rotation--;
         }
 
     }
@@ -302,7 +302,8 @@ public class TetrisBlock
         if (inputHelper.KeyPressed(Keys.E) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
         {
             rotationSystem.PerformRotate(SuperRotationSystem.Direction.Clockwise, gridMatrix, shape, location, size, rotation);
-            rotation += 1;
+            if (rotation == 3) rotation = 0;
+            else rotation++;
             if (!MoveTest(shape)[2]) timeHelper.TimerReset();
         }
 
@@ -310,13 +311,15 @@ public class TetrisBlock
         if (inputHelper.KeyPressed(Keys.Q) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
         {
             rotationSystem.PerformRotate(SuperRotationSystem.Direction.CounterClockwise, gridMatrix, shape, location, size, rotation);
-            rotation -= 1;
+            if (rotation == 0) rotation = 3;
+            else rotation--;
             if (!MoveTest(shape)[2]) timeHelper.TimerReset();
         }
 
         // Put the piece in Hold
         if (inputHelper.KeyPressed(Keys.F))
         {
+            ResetRotation();
             toHold = true;
         }
     }

@@ -42,11 +42,11 @@ public class TetrisGrid
     /// Creates a new TetrisGrid.
     /// </summary>
     /// <param name="b"></param>
-    public TetrisGrid()
+    public TetrisGrid(Vector2 position)
     {
         emptyCell = TetrisGame.ContentManager.Load<Texture2D>("grid");
         filledCell = TetrisGame.ContentManager.Load<Texture2D>("block");
-        position = new Vector2(TetrisGame.ScreenSize.X/2 - width/2 * emptyCell.Width, TetrisGame.ScreenSize.Y/2 - height/2 * emptyCell.Height);
+        this.position = position;
     }
 
     /// <summary>

@@ -94,7 +94,7 @@ class GameWorld
 
         locksound = TetrisGame.ContentManager.Load<SoundEffect>("lockblock");
 
-        grid = new TetrisGrid();
+        grid = new TetrisGrid(new Vector2(TetrisGame.ScreenSize.X / 2 - 5 * 30, TetrisGame.ScreenSize.Y / 2 - 11 * 30));
 
         nextUpGrid = new NextUpGrid();
 
@@ -113,7 +113,11 @@ class GameWorld
         if (started) block.InputHandler(inputHelper);
         if (inputHelper.KeyPressed(Keys.Space) && !started)
         {
-            CycleBlock();
+            if (gameState == GameState.GameOver)
+            {
+                gameState = GameState.Playing;
+            }
+            else CycleBlock();
         }
     }
 
@@ -156,7 +160,7 @@ class GameWorld
 
                     if (cannotSpawn) 
                     {
-                        started = false;
+                        gameState = GameState.GameOver;
                         block = null;
                         cannotSpawn = false;
                         score = 0;
@@ -166,6 +170,8 @@ class GameWorld
 
                     block.Update(gameTime);
                 }
+                break;
+            case GameState.GameOver:
                 break;
         }
     }

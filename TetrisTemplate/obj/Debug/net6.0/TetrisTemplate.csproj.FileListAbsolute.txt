@@ -56,3 +56,5 @@ C:\Users\ETils\source\repos\TetrisProject\TetrisTemplate\obj\Debug\net6.0\Tetris
 C:\Users\ETils\source\repos\TetrisProject\TetrisTemplate\obj\Debug\net6.0\ref\TetrisTemplate.dll
 C:\Users\ETils\source\repos\TetrisProject\TetrisTemplate\bin\Debug\net6.0\Content\lineclear.xnb
 C:\Users\ETils\source\repos\TetrisProject\TetrisTemplate\bin\Debug\net6.0\Content\lockblock.xnb
+C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\bin\Debug\net6.0\Content\lineclear.xnb
+C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\bin\Debug\net6.0\Content\lockblock.xnb
