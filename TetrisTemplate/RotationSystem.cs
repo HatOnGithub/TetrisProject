@@ -12,7 +12,7 @@ using System.Data.Common;
 public class SuperRotationSystem
 {
 	public enum Direction { Clockwise, CounterClockwise }
-	
+
 	TetrisGrid targetGrid;
 	TetrisBlock targetBlock;
 	Point location;
@@ -24,6 +24,7 @@ public class SuperRotationSystem
 		this.targetGrid = targetGrid;
 		this.targetBlock = targetBlock;
 	}
+
 	/// <summary>
 	/// Returns True if the shape will collide with the wall or other shapes given the offset
 	/// </summary>
@@ -72,19 +73,19 @@ public class SuperRotationSystem
 		{
 			if (WallKickValid(rotated, size, testList[i]))
 			{
-				if (dir == Direction.Clockwise && rotation < 3) targetBlock.Rotation += 1;
-				else if (dir == Direction.Clockwise) targetBlock.Rotation = 0;
+				if (dir == Direction.Clockwise && rotation < 3) targetBlock.rotation += 1;
+				else if (dir == Direction.Clockwise) targetBlock.rotation = 0;
 
-				if (dir == Direction.CounterClockwise && rotation > 0) targetBlock.Rotation -= 1;
-				else if (dir == Direction.CounterClockwise) targetBlock.Rotation = 3;
-                targetBlock.Location += testList[i];
-                targetBlock.Shape = rotated;
+				if (dir == Direction.CounterClockwise && rotation > 0) targetBlock.rotation -= 1;
+				else if (dir == Direction.CounterClockwise) targetBlock.rotation = 3;
+                targetBlock.location += testList[i];
+                targetBlock.shape = rotated;
 				break;
 			}
 		}
     }
 
-	public bool[,] RotateShape(Direction dir, bool[,] shape, int size)
+	public static bool[,] RotateShape(Direction dir, bool[,] shape, int size)
 	{
 		bool[,] result = new bool[2, 2] { { true, true },
                                           { true, true } };
@@ -139,7 +140,7 @@ public class SuperRotationSystem
 	/// <param name="size"></param>
 	/// <param name="dir"></param>
 	/// <returns></returns>
-	protected Point[] TestList(int size, int rotation, Direction dir)
+	protected static Point[] TestList(int size, int rotation, Direction dir)
 	{
 		Point[] list;
 		if (size == 2) list = new Point[1];

@@ -17,13 +17,12 @@ class GameWorld
 
     int totalLinesCleared = 0;
 
-    int basefallspeed = 48;
-
     int framesPerCell;
 
-    bool started = false;
+    public bool started = false;
 
     bool cannotSpawn = false;
+
     /// <summary>
     /// An enum for the different game states that the game can have.
     /// </summary>
@@ -88,10 +87,22 @@ class GameWorld
     public GameWorld()
     {
         random = new Random();
+
         gameState = GameState.Playing;
 
-        framesPerCell = basefallspeed;
+        grid = new TetrisGrid(new Vector2(TetrisGame.ScreenSize.X / 2 - 5 * 30, TetrisGame.ScreenSize.Y / 2 - 11 * 30));
 
+        nextUpGrid = new NextUpGrid();
+        
+        HandleLevels();
+
+        nextblock = NewRandomBlock();
+
+        Reset(false);
+    }
+
+    public void LoadContent()
+    {
         font = TetrisGame.ContentManager.Load<SpriteFont>("SpelFont");
 
         lineclear = TetrisGame.ContentManager.Load<SoundEffect>("lineclear");
@@ -99,16 +110,10 @@ class GameWorld
         locksound = TetrisGame.ContentManager.Load<SoundEffect>("lockblock");
 
         backgroundmusic = TetrisGame.ContentManager.Load<Song>("backgroundmusic");
+
         MediaPlayer.IsRepeating = true;
+
         MediaPlayer.Play(backgroundmusic);
-
-        grid = new TetrisGrid(new Vector2(TetrisGame.ScreenSize.X / 2 - 5 * 30, TetrisGame.ScreenSize.Y / 2 - 11 * 30));
-
-        nextUpGrid = new NextUpGrid();
-
-        nextblock = NewRandomBlock();
-
-        Reset();
     }
 
     /// <summary>
@@ -116,18 +121,24 @@ class GameWorld
     /// </summary>
     /// <param name="gameTime"></param>
     /// <param name="inputHelper"></param>
-    public void HandleInput(GameTime gameTime, InputHelper inputHelper)
+    public void HandleInput(InputHelper inputHelper)
     {
-        if (started) block.InputHandler(inputHelper);
+        if (started) block.InputHandler(inputHelper, started);
         if (inputHelper.KeyPressed(Keys.Space) && !started)
         {
             if (gameState == GameState.GameOver)
             {
                 gameState = GameState.Playing;
+                Reset(true);
             }
-            else CycleBlock();
+            else
+            {
+                started = true;
+                CycleBlock();
+            }
         }
     }
+
 
     /// <summary>
     /// Does Checks and stuff
@@ -138,81 +149,64 @@ class GameWorld
         switch (gameState)
         {
             case GameState.Playing:
-                if (started)
+                if (started && block != null)
                 {
-                    if (block.ToHold)
-                    {
-                        if (holdblock != null)
-                        {
-                            TetrisBlock temp;
-                            temp = holdblock;
-                            temp.ToHold = false;
-                            temp.ReturnFromHold();
-                            holdblock = block;
-                            block = temp;
-                            nextUpGrid.Refresh(nextblock, holdblock);
-                        }
-                        else
-                        {
-                            holdblock = block;
-                            block = null;
-                            CycleBlock();
-                        }
-                    }
+                    if (block.toHold) HoldSequence();
+
                     if (block.HasCommitedToGrid)
                     {
                         locksound.Play();
                         HandleScore();
                         HandleLevels();
+                        CycleBlock();
                     }
 
                     if (cannotSpawn) 
                     {
                         gameState = GameState.GameOver;
-                        block = null;
                         cannotSpawn = false;
-                        score = 0;
-                        level = 0;
+                        started = false;
                         break;
                     } 
 
                     block.Update(gameTime);
                 }
                 break;
-            case GameState.GameOver:
-                break;
         }
     }
+
 
     /// <summary>
     /// Does Drawing Stuff
     /// </summary>
     /// <param name="gameTime"></param>
     /// <param name="spriteBatch"></param>
-    public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+    public void Draw(SpriteBatch spriteBatch)
     {
         spriteBatch.Begin();
         Vector2 midScreen = new Vector2((TetrisGame.ScreenSize.X / 2), (TetrisGame.ScreenSize.Y / 2));
-        Vector2 stringSizeGameOver = font.MeasureString("Game Over");
         Vector2 stringSizeLevel = font.MeasureString("Level: " + level.ToString());
-        Vector2 stringSizeScore = font.MeasureString("Score: " + score.ToString());
         Vector2 stringSizeStart = font.MeasureString("Press <Space> to Start!");
+        string[] gameText = new string[] { "Score: " + score.ToString(), "Level: " + level.ToString()};
+        string[] gameOverText = new string[] {"Game over", "Level: " + level.ToString(), "Score: " + score.ToString()};
 
         switch (gameState)
         {
             case GameState.Playing:
-                grid.Draw(gameTime, spriteBatch);
-                nextUpGrid.Draw(gameTime, spriteBatch);
+                grid.Draw(spriteBatch);
+                nextUpGrid.Draw(spriteBatch, font);
+
                 spriteBatch.DrawString(font, "Score: " + score.ToString(), Vector2.Zero, Color.White);
                 spriteBatch.DrawString(font, "Level: " + level.ToString(), new Vector2(0, stringSizeLevel.Y), Color.White);
                 if (!started) spriteBatch.DrawString(font, "Press <Space> to Start!", new Vector2(midScreen.X - stringSizeStart.X / 2, midScreen.Y), Color.White);
-                if (started) block.Draw(gameTime, spriteBatch);
+                if (started) block.Draw(spriteBatch, font);
                 break;
             case GameState.GameOver:
-                
-                spriteBatch.DrawString(font, "Game Over", new Vector2(midScreen.X - stringSizeGameOver.X/2, midScreen.Y - stringSizeGameOver.Y), Color.White);
-                spriteBatch.DrawString(font, "Level: " + level.ToString(), new Vector2(midScreen.X - stringSizeLevel.X / 2 , midScreen.Y), Color.White);
-                spriteBatch.DrawString(font, "Score: " + score.ToString(), new Vector2(midScreen.X - stringSizeScore.X / 2 , midScreen.Y + stringSizeScore.Y), Color.White);
+                for (int i = 0; i < gameOverText.Length; i++)
+                {
+                    Vector2 l = new Vector2(midScreen.X - font.MeasureString(gameOverText[i]).X / 2, midScreen.Y + i * font.MeasureString(gameOverText[i]).Y);
+                    spriteBatch.DrawString(font, gameOverText[i], l, Color.White);
+                }
                 break;
         }
         spriteBatch.End();
@@ -231,19 +225,16 @@ class GameWorld
         if (started && (grid.gridMatrix[0, 3] || grid.gridMatrix[0, 4] || grid.gridMatrix[0, 5] ||
             grid.gridMatrix[1, 3] || grid.gridMatrix[1, 4] || grid.gridMatrix[1, 5] || grid.gridMatrix[1, 6]))
         {
-            Reset();
-            started = false;
-            block = null;
             cannotSpawn = true;
         }
+
         // normal cycling of blocks
         else
         {
             block = nextblock;
-            started = true;
+            nextblock = NewRandomBlock();
+            nextUpGrid.Refresh(nextblock, holdblock);
         }
-        nextblock = NewRandomBlock();
-        nextUpGrid.Refresh(nextblock, holdblock);
     }
 
     /// <summary>
@@ -252,30 +243,22 @@ class GameWorld
     /// <returns></returns>
     public TetrisBlock NewRandomBlock()
     {
-        TetrisBlock result = null;
         int i = random.Next(1, 8);
         switch (i)
         {
-            case 1: result = new T(grid, framesPerCell);
-                break;
-            case 2: result = new L(grid, framesPerCell);
-                break;
-            case 3: result = new J(grid, framesPerCell);
-                break;
-            case 4: result = new I(grid, framesPerCell);
-                break;
-            case 5: result = new O(grid, framesPerCell);
-                break;
-            case 6: result = new S(grid, framesPerCell);
-                break;
-            case 7: result = new Z(grid, framesPerCell);
-                break;
+            case 1: return new T(grid, framesPerCell);
+            case 2: return new L(grid, framesPerCell);
+            case 3: return new J(grid, framesPerCell);
+            case 4: return new I(grid, framesPerCell);
+            case 5: return new O(grid, framesPerCell);
+            case 6: return new S(grid, framesPerCell);
+            case 7: return new Z(grid, framesPerCell);
+            default: return null;
         }
-        return result;
     }
 
     /// <summary>
-    /// Calculates score based on level, lines cleared and other bonuses
+    /// Calculates score based on level, lines cleared and other bonuses like soft and hard drops
     /// </summary>
     public void HandleScore()
     {
@@ -302,8 +285,6 @@ class GameWorld
         totalLinesCleared += l;
         if (block.HardDropped) score += block.CellsDroppedBonus * 2;
         else score += block.CellsDroppedBonus;
-
-        CycleBlock();
     }
 
     /// <summary>
@@ -312,34 +293,60 @@ class GameWorld
     public void HandleLevels()
     {
         int[] LinesBeforeIncrease = new int[30] 
-        {10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
-         100, 100, 100, 100, 100, 100, 110, 120, 130, 140,
-         150, 160, 170, 180, 190, 200, 200, 200, 200, -1};
+        {5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
+         50, 50, 50, 50, 50, 50, 55, 60, 65, 70,
+         75, 80, 85, 90, 95, 100, 100, 150, 200, -1};
 
         int[] speedPerLevel = new int[30]
         {48, 43, 38, 33, 28, 23, 18, 13, 8, 6,
          5, 5, 4, 4, 4, 3, 3, 3, 3, 2,
          2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
+
         if (totalLinesCleared >= LinesBeforeIncrease[level] && LinesBeforeIncrease[level] != -1)
         {
             totalLinesCleared -= LinesBeforeIncrease[level];
             level += 1;
-            framesPerCell = speedPerLevel[level];
         }
+        framesPerCell = speedPerLevel[level];
     }
 
-    public void SaveHighScore()
+    /// <summary>
+    /// Does the Hold Piece stuff
+    /// </summary>
+    public void HoldSequence()
     {
-
+        if (holdblock != null)
+        {
+            TetrisBlock temp;
+            temp = holdblock;
+            temp.toHold = false;
+            temp.ReturnFromHold();
+            holdblock = block;
+            block = temp;
+            nextUpGrid.Refresh(nextblock, holdblock);
+        }
+        else
+        {
+            holdblock = block;
+            block = null;
+            CycleBlock();
+        }
     }
 
     /// <summary>
     /// Clears the board
     /// </summary>
-    public void Reset()
+    public void Reset(bool restarting)
     {
+        if (restarting)
+        {
+            started = false;
+            block = null;
+            cannotSpawn = false;
+            score = 0;
+            level = 0;
+        }
         nextUpGrid.Refresh(nextblock, holdblock);
         grid.Clear();
     }
-
 }

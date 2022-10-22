@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Media;
 using System;
 using System.Linq;
 using System.Net.Mime;
+using System.Reflection.Emit;
 using System.Threading;
 
 public class TetrisBlock
@@ -13,33 +14,28 @@ public class TetrisBlock
     /// <summary>
     /// Shape of the current Tetris block as a 2D bool array
     /// </summary>
-    public bool[,] Shape { get { return shape; } set { shape = value; } }
-    protected bool[,] shape;
+    public bool[,] shape ;
     
     /// <summary>
     /// Size of the shape
     /// </summary>
-    public int Size { get { return size; } }
-    protected int size;
+    public int size;
     
     /// <summary>
     /// Rotation
     /// </summary>
-    public int Rotation { get { return rotation; } set { rotation = value; } }
-    protected int rotation;
+    public int rotation;
     
     /// <summary>
     /// Current location on the grid as a Point
     /// </summary>
-    public Point Location { get { return location; } set { location = value; } }
-    protected Point location;
+    public Point location;
     protected Point startlocation;
 
     /// <summary>
     /// Returns the color of the Tetris Block
     /// </summary>
-    public Color Color { get { return color; } }
-    protected Color color;
+    public Color color;
     
     /// <summary>
     /// If the shapeToGrid() method has been called: shows true
@@ -50,9 +46,8 @@ public class TetrisBlock
     /// <summary>
     /// Put the shape in Hold
     /// </summary>
-    public bool ToHold { get { return toHold; } set { toHold = value; } }
-    protected bool toHold = false;
-
+    public bool toHold = false;
+    protected bool returnedFromHold = false;
 
     // Score Modifiers (HardDropped and CellsDroppedBonus)
     public bool HardDropped { get { return hardDropped; } }
@@ -76,7 +71,7 @@ public class TetrisBlock
     protected int framesPerCell;
 
     // How long it takes for the block to commit to grid
-    int lockDelay = 500;
+    int lockDelay = 100; // Milliseconds
 
     // stores which grid the block is bound to
     protected TetrisGrid targetGrid;
@@ -111,7 +106,6 @@ public class TetrisBlock
         sprite = TetrisGame.ContentManager.Load<Texture2D>("block");
         rotation = 0;
         timeHelper = new TimeHelper();
-
     }
     
     /// <summary>
@@ -123,10 +117,11 @@ public class TetrisBlock
         for (int y = start; y < targetGrid.Height; y++)
         {
             location.Y = y;
-            if (!MoveTest(shape)[2])
+            if (!MoveTest(shape, location)[2])
             {
                 cellsDroppedBonus = y - start;
                 hardDropped = true;
+                lockDelay = 50;
                 break;
             }
         }
@@ -136,12 +131,12 @@ public class TetrisBlock
     /// Returns a bool array of length 4 defined as such: 
     /// [0] = Up, [1] = Right, [2] = Down, [3] = Left
     /// </summary>
-    protected bool[] MoveTest(bool[,] testshape)
+    protected bool[] MoveTest(bool[,] testshape, Point location)
     {
         // sets all values to true
         bool[] canMoveTo = Enumerable.Repeat<bool>(true, 4).ToArray(); 
 
-        // goes through the shape
+        // goes through the shape at it's given location
         for (int y = location.Y; y < location.Y + size; y++)
         {
             if (y < 0) continue;
@@ -172,7 +167,6 @@ public class TetrisBlock
                             if (gridMatrix[y, x - 1])   canMoveTo[3] = false;
                             if (gridMatrix[y, x + 1])   canMoveTo[1] = false;
                         }
-                        lowestPoint = y;
                     }
                 }
             }
@@ -185,17 +179,15 @@ public class TetrisBlock
     /// </summary>
     protected void CommitToGrid()
     {
-        for (int y = 0; y < targetGrid.Height; y++)
+        for (int y = 0; y < size; y++)
         {
-            for (int x = 0; x < targetGrid.Width; x++)
+            for (int x = 0; x < size; x++)
             {
-                if (y - location.Y >= 0 && y - location.Y < size && x - location.X >= 0 && x - location.X < size)
+                if (shape[y , x])
                 {
-                    if (shape[y - location.Y, x - location.X])
-                    {
-                        targetGrid.gridMatrix[y, x] = true;
-                        targetGrid.colorMatrix[y, x] = color;
-                    }
+                    targetGrid.gridMatrix[y + location.Y, x + location.X] = true;
+                    targetGrid.colorMatrix[y + location.Y, x + location.X] = color;
+                    lowestPoint = location.Y + y;
                 }
             }
         }
@@ -203,12 +195,13 @@ public class TetrisBlock
     }
 
     /// <summary>
-    /// Does the stuff to make sure when returning from hold it resets properly
+    /// Does the stuff to make sure when returning from hold the block resets properly
     /// </summary>
     public void ReturnFromHold()
     {
         timeHelper.TimerReset();
         location = startlocation;
+        returnedFromHold = true;
     }
 
     /// <summary>
@@ -218,7 +211,7 @@ public class TetrisBlock
     {
         if (timeHelper.TimerHasReachedFrames(framesPerCell))
         {
-            if (MoveTest(shape)[2])
+            if (MoveTest(shape, location)[2])
             {
                 location.Y += 1;
                 if (IsSoftDropping) cellsDroppedBonus += 1;
@@ -227,7 +220,6 @@ public class TetrisBlock
             else if (timeHelper.TimerHasReached(lockDelay))
             {
                 CommitToGrid();
-                timeHelper.TimerReset();
             }
         }
     }
@@ -243,40 +235,31 @@ public class TetrisBlock
             rotationSystem.PerformRotate(SuperRotationSystem.Direction.CounterClockwise, gridMatrix, shape, location, size, rotation);
             rotation--;
         }
-
-    }
-
-    /// <summary>
-    /// Does Physics stuff
-    /// </summary>
-    /// <param name="gameTime"></param>
-    public void Update(GameTime gameTime)
-    {
-        timeHelper.Update(gameTime);
-        Gravity();
     }
 
     /// <summary>
     /// Controls for moving the Block
     /// </summary>
     /// <param name="inputHelper"></param>
-    public void InputHandler(InputHelper inputHelper)
+    public void InputHandler(InputHelper inputHelper, bool started)
     {
+        // Movement
+
         // move left
         if (inputHelper.KeyPressed(Keys.A) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
         {
-            if (MoveTest(shape)[3]) location.X -= 1;
-            if (!MoveTest(shape)[2]) timeHelper.TimerReset();
+            if (MoveTest(shape, location)[3]) location.X -= 1;
+            if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
         }
+
         // move right
         if (inputHelper.KeyPressed(Keys.D) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
         {
-            if (MoveTest(shape)[1]) location.X += 1;
-            if (!MoveTest(shape)[2]) timeHelper.TimerReset();
+            if (MoveTest(shape, location)[1]) location.X += 1;
+            if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
         }
 
-
-        // Increase Gravity when S is held
+        // Double Gravity when S is held
         if (inputHelper.KeyPressed(Keys.S))
         {
             IsSoftDropping = true;
@@ -289,9 +272,11 @@ public class TetrisBlock
             framesPerCell *= 2;
         }
 
-        // non-movement actions
 
-        // Move Block to the lowest possible position, gives bonus points
+
+        // Non-movement actions
+
+        // Move Block to the lowest possible position, gives bonus points for each cell dropped
         if (inputHelper.KeyPressed(Keys.Space))
         {
             HardDrop();
@@ -301,45 +286,93 @@ public class TetrisBlock
         // Rotate Clockwise
         if (inputHelper.KeyPressed(Keys.E) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
         {
+            // perform rotation
             rotationSystem.PerformRotate(SuperRotationSystem.Direction.Clockwise, gridMatrix, shape, location, size, rotation);
+
+            // keep track of rotation state
             if (rotation == 3) rotation = 0;
             else rotation++;
-            if (!MoveTest(shape)[2]) timeHelper.TimerReset();
+
+            // if it can't move down, give grace time
+            if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
         }
 
         // Rotate CounterClockwise
         if (inputHelper.KeyPressed(Keys.Q) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
         {
+            //perform rotation
             rotationSystem.PerformRotate(SuperRotationSystem.Direction.CounterClockwise, gridMatrix, shape, location, size, rotation);
+
+            // keep track of rotation state
             if (rotation == 0) rotation = 3;
             else rotation--;
-            if (!MoveTest(shape)[2]) timeHelper.TimerReset();
+
+            // if it can't move down, give grace time
+            if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
         }
 
         // Put the piece in Hold
-        if (inputHelper.KeyPressed(Keys.F))
+        if (inputHelper.KeyPressed(Keys.F) && !returnedFromHold)
         {
+            // reset rotation so it can fit into the spawn area
             ResetRotation();
             toHold = true;
         }
+
+        if (inputHelper.KeyPressed(Keys.Escape) && started)
+        {
+            timeHelper.Pause();
+        }
     }
 
-    // draws the shape by testing the shape matrix and then drawing it on screen with the location as offset compared to the targeted grid
-    public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+    /// <summary>
+    /// Does Physics stuff
+    /// </summary>
+    /// <param name="gameTime"></param>
+    public void Update(GameTime gameTime)
     {
-        
+        timeHelper.Update(gameTime);
+        Gravity();
+    }
+    
+    /// <summary>
+    ///  Draws ghost block and block
+    /// </summary>
+    /// <param name="gameTime"></param>
+    /// <param name="spriteBatch"></param>
+    public void Draw(SpriteBatch spriteBatch, SpriteFont font)
+    {
+        Vector2 midScreen = new Vector2((TetrisGame.ScreenSize.X / 2), (TetrisGame.ScreenSize.Y / 2));
         Vector2 gridPosition = targetGrid.Position;
-        for (int i = 0; i < size; i++)
+        Vector2 stringSizePaused = font.MeasureString("Paused");
+
+        // Calculate lowest position for the ghostblock
+        int ghostblockY = 0;
+        for (int y = 0; y < targetGrid.Height; y++)
         {
-            for (int j = 0; j < size; j++)
+            if (!MoveTest(shape, new Point(location.X, location.Y + y))[2]) 
             {
-                if (shape[i, j] && location.Y + i >= 0)
+                ghostblockY = location.Y + y;
+                break;
+            } 
+        }
+
+        // Actual drawing
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                if (shape[y, x] && location.Y + y >= 0)
                 {
-                    spriteBatch.Draw(sprite, new Vector2(gridPosition.X + ((j + location.X) * sprite.Width), gridPosition.Y + ((i + location.Y) * sprite.Height)), color);
+                    // draw ghost block
+                    spriteBatch.Draw(sprite, new Vector2(gridPosition.X + ((x + location.X) * sprite.Width), gridPosition.Y + ((y + ghostblockY) * sprite.Height)), new Color(0, 0, 0, 100));
+                    // draw block
+                    spriteBatch.Draw(sprite, new Vector2(gridPosition.X + ((x + location.X) * sprite.Width), gridPosition.Y + ((y + location.Y) * sprite.Height)), color);
+                    // if paused, say so
+                    if (timeHelper.paused) spriteBatch.DrawString(font, "Paused", new Vector2(midScreen.X - stringSizePaused.X / 2, midScreen.Y), Color.White);
                 }
             }
         }
-        
     }
 }
 

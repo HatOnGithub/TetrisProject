@@ -21,7 +21,7 @@ class TetrisGame : Game
     public static Point ScreenSize { get; private set; }
 
     [STAThread]
-    static void Main(string[] args)
+    static void Main()
     {
         TetrisGame game = new TetrisGame();
         game.Run();
@@ -54,20 +54,20 @@ class TetrisGame : Game
 
         // create and reset the game world
         gameWorld = new GameWorld();
-        gameWorld.Reset();
+        gameWorld.LoadContent();
     }
 
     protected override void Update(GameTime gameTime)
     {
         inputHelper.Update(gameTime);
-        gameWorld.HandleInput(gameTime, inputHelper);
+        gameWorld.HandleInput(inputHelper);
         gameWorld.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.Black);
-        gameWorld.Draw(gameTime, spriteBatch);
+        gameWorld.Draw(spriteBatch);
     }
 }
 

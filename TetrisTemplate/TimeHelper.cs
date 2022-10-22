@@ -7,6 +7,7 @@ public class TimeHelper
 	int referenceTime;
 	int currentTime;
 	bool timerSet;
+	public bool paused;
 
 	/// <summary>
 	/// Keeps track of Time
@@ -43,6 +44,7 @@ public class TimeHelper
 	/// <returns></returns>
 	public bool TimerHasReached(int delayInMilliseconds)
 	{
+		if (paused) return false;
 		if (timerSet && currentTime >= referenceTime + delayInMilliseconds)
 			return true;
 		return false;
@@ -50,10 +52,19 @@ public class TimeHelper
 
 	public bool TimerHasReachedFrames(int frames)
 	{
-		// 1 frame is 16.7 milliseconds at 60 frames per second
-		float Milliseconds = frames * 16.7f;
+        if (paused) return false;
+
+        // 1 frame is 16.7 milliseconds at 60 frames per second
+        float Milliseconds = frames * 16.7f;
+
 		if (timerSet && currentTime >= referenceTime + Milliseconds) 
             return true;
 		return false;
+	}
+
+	public void Pause()
+	{
+		if (paused) TimerReset();
+		paused = !paused;
 	}
 }
