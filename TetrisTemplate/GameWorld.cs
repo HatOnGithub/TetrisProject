@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using System;
 
 /// <summary>
@@ -78,6 +79,9 @@ class GameWorld
     // sound for locking shape to grid
     protected SoundEffect locksound;
 
+    // background music
+    protected Song backgroundmusic;
+
     /// <summary>
     /// Hey, you called me?
     /// </summary>
@@ -93,6 +97,10 @@ class GameWorld
         lineclear = TetrisGame.ContentManager.Load<SoundEffect>("lineclear");
 
         locksound = TetrisGame.ContentManager.Load<SoundEffect>("lockblock");
+
+        backgroundmusic = TetrisGame.ContentManager.Load<Song>("backgroundmusic");
+        MediaPlayer.IsRepeating = true;
+        MediaPlayer.Play(backgroundmusic);
 
         grid = new TetrisGrid(new Vector2(TetrisGame.ScreenSize.X / 2 - 5 * 30, TetrisGame.ScreenSize.Y / 2 - 11 * 30));
 
