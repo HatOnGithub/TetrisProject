@@ -11,9 +11,9 @@ Level is determined by total amount of lines cleared
 
 Score is determined by amount of lines cleared at the same time
 
-Harddropping gives bonus points depending on amount of cells dropped x2
+Softdropping gives bonus points equal to the amount of cells dropped
 
-Softdropping does the same but only the amount of cells dropped
+Harddropping does the same but doubles the bonus
 
 Controls:
 
