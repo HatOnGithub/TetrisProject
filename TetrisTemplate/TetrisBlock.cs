@@ -272,7 +272,7 @@ public class TetrisBlock
             // Non-movement actions
 
             // Move Block to the lowest possible position, gives bonus points for each cell dropped
-            if (inputHelper.KeyPressed(Keys.Space))
+            if (inputHelper.KeyPressed(Keys.Space) && !hardDropped)
             {
                 HardDrop();
                 timeHelper.TimerReset();

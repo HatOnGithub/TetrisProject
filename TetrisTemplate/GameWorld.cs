@@ -343,15 +343,19 @@ class GameWorld
     /// </summary>
     public void Reset(bool restarting)
     {
+
+        grid.Clear();
         if (restarting)
         {
             started = false;
             cannotSpawn = false;
             score = 0;
             level = 0;
+            block = null;
+            holdblock = null;   
+            nextblock = null;
         }
         nextblock = NewRandomBlock();
         nextUpGrid.Refresh(nextblock, holdblock);
-        grid.Clear();
     }
 }
