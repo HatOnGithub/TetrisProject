@@ -29,7 +29,7 @@ Basic features:
  - Score Counting
  - Line Clearing
  - Collision Detection
- - Level Record
+ - Levels
  - Harddrop
  - Hold Piece
  - Rotation*
@@ -39,4 +39,4 @@ Basic features:
 Extra Features:
 
  - Kickback System (took way too long)
- - Save a shape to use later on
+ - Simply pausing the game...
