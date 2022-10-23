@@ -14,8 +14,11 @@ public class SuperRotationSystem
 	public enum Direction { Clockwise, CounterClockwise }
 
 	TetrisGrid targetGrid;
+
 	TetrisBlock targetBlock;
+
 	Point location;
+
 	bool[,] gridMatrix;
 
 	public SuperRotationSystem(TetrisBlock targetBlock, TetrisGrid targetGrid)
@@ -41,6 +44,7 @@ public class SuperRotationSystem
 				if ((location.X + x + testOffset.X < 0 || location.X + x + testOffset.X >= targetGrid.Width || location.Y + y + testOffset.Y >= targetGrid.Height) && 
 					rotatedShape[y, x])
 					return false;
+
 				// checks if overlapping with shapes already on grid
 				else if (location.Y + y + testOffset.Y >= 0 && location.Y + y + testOffset.Y < targetGrid.Height &&
                     location.X + x + testOffset.X >= 0 && location.X + x + testOffset.X < targetGrid.Width)
@@ -68,7 +72,8 @@ public class SuperRotationSystem
         bool[,] rotated = RotateShape(dir, shape, size);
 		
         
-		// checks wallkick offsets
+		// checks wallkick offsets using list of Tests
+
 		for (int i = 0; i < testList.Length; i++)
 		{
 			if (WallKickValid(rotated, size, testList[i]))
@@ -85,6 +90,13 @@ public class SuperRotationSystem
 		}
     }
 
+	/// <summary>
+	/// Quick and dirty rotation
+	/// </summary>
+	/// <param name="dir"></param>
+	/// <param name="shape"></param>
+	/// <param name="size"></param>
+	/// <returns></returns>
 	public static bool[,] RotateShape(Direction dir, bool[,] shape, int size)
 	{
 		bool[,] result = new bool[2, 2] { { true, true },

@@ -114,6 +114,8 @@ class GameWorld
         MediaPlayer.IsRepeating = true;
 
         MediaPlayer.Play(backgroundmusic);
+
+        MediaPlayer.Volume = 0.5f;
     }
 
     /// <summary>
@@ -166,6 +168,9 @@ class GameWorld
                         gameState = GameState.GameOver;
                         cannotSpawn = false;
                         started = false;
+                        holdblock = null;
+                        block = null;
+                        nextblock = null;
                         break;
                     } 
 
@@ -341,11 +346,11 @@ class GameWorld
         if (restarting)
         {
             started = false;
-            block = null;
             cannotSpawn = false;
             score = 0;
             level = 0;
         }
+        nextblock = NewRandomBlock();
         nextUpGrid.Refresh(nextblock, holdblock);
         grid.Clear();
     }

@@ -1,20 +1,14 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Microsoft.Xna.Framework.Media;
 using System;
 using System.Linq;
-using System.Net.Mime;
-using System.Reflection.Emit;
-using System.Threading;
-
 public class TetrisBlock
 {
     /// <summary>
     /// Shape of the current Tetris block as a 2D bool array
     /// </summary>
-    public bool[,] shape ;
+    public bool[,] shape;
     
     /// <summary>
     /// Size of the shape
@@ -57,8 +51,6 @@ public class TetrisBlock
     protected bool IsSoftDropping = false;
     public int CellsDroppedBonus { get { return cellsDroppedBonus; } }
     protected int cellsDroppedBonus = 0;
-    
-
 
     // Highest and Lowest point of the block after commiting
     public int HighestPoint { get { return highestPoint; } }
@@ -92,7 +84,7 @@ public class TetrisBlock
     protected TimeHelper timeHelper;
 
     /// <summary>
-    /// sets starting values
+    /// Set Targeted Grid and Speed
     /// </summary>
     /// <param name="targetGrid"></param>
     /// <param name="location"></param>
@@ -130,6 +122,7 @@ public class TetrisBlock
     /// <summary>
     /// Returns a bool array of length 4 defined as such: 
     /// [0] = Up, [1] = Right, [2] = Down, [3] = Left
+    /// True if it can move in that direction, false if not.
     /// </summary>
     protected bool[] MoveTest(bool[,] testshape, Point location)
     {
@@ -232,7 +225,7 @@ public class TetrisBlock
     {
         while (rotation > 0)
         {
-            rotationSystem.PerformRotate(SuperRotationSystem.Direction.CounterClockwise, gridMatrix, shape, location, size, rotation);
+            shape = SuperRotationSystem.RotateShape(SuperRotationSystem.Direction.CounterClockwise, shape, size);
             rotation--;
         }
     }
@@ -248,17 +241,17 @@ public class TetrisBlock
             // Movement
 
             // move left
-            if (inputHelper.KeyPressed(Keys.A) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
+            if (inputHelper.KeyPressed(Keys.A))
             {
                 if (MoveTest(shape, location)[3]) location.X -= 1;
-                if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
+                if (!MoveTest(shape, location)[2] && (MoveTest(shape, location)[1] || MoveTest(shape, location)[3])) timeHelper.TimerReset();
             }
 
             // move right
-            if (inputHelper.KeyPressed(Keys.D) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
+            if (inputHelper.KeyPressed(Keys.D))
             {
                 if (MoveTest(shape, location)[1]) location.X += 1;
-                if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
+                if (!MoveTest(shape, location)[2] && (MoveTest(shape, location)[1] || MoveTest(shape, location)[3])) timeHelper.TimerReset();
             }
 
             // Double Gravity when S is held
@@ -286,7 +279,7 @@ public class TetrisBlock
             }
 
             // Rotate Clockwise
-            if (inputHelper.KeyPressed(Keys.E) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
+            if (inputHelper.KeyPressed(Keys.E))
             {
                 // perform rotation
                 rotationSystem.PerformRotate(SuperRotationSystem.Direction.Clockwise, gridMatrix, shape, location, size, rotation);
@@ -300,7 +293,7 @@ public class TetrisBlock
             }
 
             // Rotate CounterClockwise
-            if (inputHelper.KeyPressed(Keys.Q) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
+            if (inputHelper.KeyPressed(Keys.Q))
             {
                 //perform rotation
                 rotationSystem.PerformRotate(SuperRotationSystem.Direction.CounterClockwise, gridMatrix, shape, location, size, rotation);
@@ -378,8 +371,6 @@ public class TetrisBlock
         }
     }
 }
-
-
 
 
 // Subclasses for each possible shape

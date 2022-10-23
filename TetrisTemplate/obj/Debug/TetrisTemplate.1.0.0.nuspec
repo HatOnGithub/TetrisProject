@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>TetrisTemplate</id>
+    <version>1.0.0</version>
+    <authors>TetrisTemplate</authors>
+    <description>Package Description</description>
+    <dependencies>
+      <group targetFramework="net6.0">
+        <dependency id="MonoGame.Content.Builder.Task" version="3.8.1.303" exclude="Build,Analyzers" />
+        <dependency id="MonoGame.Framework.DesktopGL" version="3.8.1.303" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <contentFiles>
+      <files include="any/net6.0/Content/bin/DesktopGL/Content/backgroundmusic.ogg" buildAction="Content" />
+      <files include="any/net6.0/Content/bin/DesktopGL/Content/backgroundmusic.xnb" buildAction="Content" />
+      <files include="any/net6.0/Content/bin/DesktopGL/Content/block.xnb" buildAction="Content" />
+      <files include="any/net6.0/Content/bin/DesktopGL/Content/grid.xnb" buildAction="Content" />
+      <files include="any/net6.0/Content/bin/DesktopGL/Content/lineclear.xnb" buildAction="Content" />
+      <files include="any/net6.0/Content/bin/DesktopGL/Content/lockblock.xnb" buildAction="Content" />
+      <files include="any/net6.0/Content/bin/DesktopGL/Content/SpelFont.xnb" buildAction="Content" />
+    </contentFiles>
+  </metadata>
+  <files>
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\bin\Debug\net6.0\TetrisTemplate.runtimeconfig.json" target="lib\net6.0\TetrisTemplate.runtimeconfig.json" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\bin\Debug\net6.0\TetrisTemplate.dll" target="lib\net6.0\TetrisTemplate.dll" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\backgroundmusic.ogg" target="content\Content\bin\DesktopGL\Content\backgroundmusic.ogg" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\backgroundmusic.ogg" target="contentFiles\any\net6.0\Content\bin\DesktopGL\Content\backgroundmusic.ogg" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\backgroundmusic.xnb" target="content\Content\bin\DesktopGL\Content\backgroundmusic.xnb" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\backgroundmusic.xnb" target="contentFiles\any\net6.0\Content\bin\DesktopGL\Content\backgroundmusic.xnb" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\block.xnb" target="content\Content\bin\DesktopGL\Content\block.xnb" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\block.xnb" target="contentFiles\any\net6.0\Content\bin\DesktopGL\Content\block.xnb" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\grid.xnb" target="content\Content\bin\DesktopGL\Content\grid.xnb" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\grid.xnb" target="contentFiles\any\net6.0\Content\bin\DesktopGL\Content\grid.xnb" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\lineclear.xnb" target="content\Content\bin\DesktopGL\Content\lineclear.xnb" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\lineclear.xnb" target="contentFiles\any\net6.0\Content\bin\DesktopGL\Content\lineclear.xnb" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\lockblock.xnb" target="content\Content\bin\DesktopGL\Content\lockblock.xnb" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\lockblock.xnb" target="contentFiles\any\net6.0\Content\bin\DesktopGL\Content\lockblock.xnb" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\SpelFont.xnb" target="content\Content\bin\DesktopGL\Content\SpelFont.xnb" />
+    <file src="C:\Users\LeHat\source\repos\HatOnGithub\TetrisProject\TetrisTemplate\Content\bin\DesktopGL\Content\SpelFont.xnb" target="contentFiles\any\net6.0\Content\bin\DesktopGL\Content\SpelFont.xnb" />
+  </files>
+</package>
