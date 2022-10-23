@@ -2,11 +2,17 @@
 Mechanics:
 
 You get 0.1 seconds to move or rotate your piece before it locks into the grid
+
 Each action delays the lock by the same amount of time
+
 Rotation and Movement doesn't affect gravity
+
 Level is determined by total amount of lines cleared
+
 Score is determined by amount of lines cleared at the same time
+
 Harddropping gives bonus points depending on amount of cells dropped x2
+
 Softdropping does the same but only the amount of cells dropped
 
 Controls:
