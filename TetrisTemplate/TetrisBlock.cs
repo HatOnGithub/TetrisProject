@@ -243,80 +243,83 @@ public class TetrisBlock
     /// <param name="inputHelper"></param>
     public void InputHandler(InputHelper inputHelper, bool started)
     {
-        // Movement
-
-        // move left
-        if (inputHelper.KeyPressed(Keys.A) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
+        if (!timeHelper.paused)
         {
-            if (MoveTest(shape, location)[3]) location.X -= 1;
-            if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
-        }
+            // Movement
 
-        // move right
-        if (inputHelper.KeyPressed(Keys.D) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
-        {
-            if (MoveTest(shape, location)[1]) location.X += 1;
-            if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
-        }
+            // move left
+            if (inputHelper.KeyPressed(Keys.A) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
+            {
+                if (MoveTest(shape, location)[3]) location.X -= 1;
+                if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
+            }
 
-        // Double Gravity when S is held
-        if (inputHelper.KeyPressed(Keys.S))
-        {
-            IsSoftDropping = true;
-            framesPerCell /= 2;
-        }
+            // move right
+            if (inputHelper.KeyPressed(Keys.D) && (!inputHelper.KeyPressed(Keys.Right) || inputHelper.KeyPressed(Keys.Left)))
+            {
+                if (MoveTest(shape, location)[1]) location.X += 1;
+                if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
+            }
 
-        if (inputHelper.KeyReleased(Keys.S))
-        {
-            IsSoftDropping = false;
-            framesPerCell *= 2;
-        }
+            // Double Gravity when S is held
+            if (inputHelper.KeyPressed(Keys.S))
+            {
+                IsSoftDropping = true;
+                framesPerCell /= 2;
+            }
+
+            if (inputHelper.KeyReleased(Keys.S))
+            {
+                IsSoftDropping = false;
+                framesPerCell *= 2;
+            }
 
 
 
-        // Non-movement actions
+            // Non-movement actions
 
-        // Move Block to the lowest possible position, gives bonus points for each cell dropped
-        if (inputHelper.KeyPressed(Keys.Space))
-        {
-            HardDrop();
-            timeHelper.TimerReset();
-        }
+            // Move Block to the lowest possible position, gives bonus points for each cell dropped
+            if (inputHelper.KeyPressed(Keys.Space))
+            {
+                HardDrop();
+                timeHelper.TimerReset();
+            }
 
-        // Rotate Clockwise
-        if (inputHelper.KeyPressed(Keys.E) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
-        {
-            // perform rotation
-            rotationSystem.PerformRotate(SuperRotationSystem.Direction.Clockwise, gridMatrix, shape, location, size, rotation);
+            // Rotate Clockwise
+            if (inputHelper.KeyPressed(Keys.E) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
+            {
+                // perform rotation
+                rotationSystem.PerformRotate(SuperRotationSystem.Direction.Clockwise, gridMatrix, shape, location, size, rotation);
 
-            // keep track of rotation state
-            if (rotation == 3) rotation = 0;
-            else rotation++;
+                // keep track of rotation state
+                if (rotation == 3) rotation = 0;
+                else rotation++;
 
-            // if it can't move down, give grace time
-            if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
-        }
+                // if it can't move down, give grace time
+                if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
+            }
 
-        // Rotate CounterClockwise
-        if (inputHelper.KeyPressed(Keys.Q) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
-        {
-            //perform rotation
-            rotationSystem.PerformRotate(SuperRotationSystem.Direction.CounterClockwise, gridMatrix, shape, location, size, rotation);
+            // Rotate CounterClockwise
+            if (inputHelper.KeyPressed(Keys.Q) && !(inputHelper.KeyPressed(Keys.A) || inputHelper.KeyPressed(Keys.D)))
+            {
+                //perform rotation
+                rotationSystem.PerformRotate(SuperRotationSystem.Direction.CounterClockwise, gridMatrix, shape, location, size, rotation);
 
-            // keep track of rotation state
-            if (rotation == 0) rotation = 3;
-            else rotation--;
+                // keep track of rotation state
+                if (rotation == 0) rotation = 3;
+                else rotation--;
 
-            // if it can't move down, give grace time
-            if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
-        }
+                // if it can't move down, give grace time
+                if (!MoveTest(shape, location)[2]) timeHelper.TimerReset();
+            }
 
-        // Put the piece in Hold
-        if (inputHelper.KeyPressed(Keys.F) && !returnedFromHold)
-        {
-            // reset rotation so it can fit into the spawn area
-            ResetRotation();
-            toHold = true;
+            // Put the piece in Hold
+            if (inputHelper.KeyPressed(Keys.F) && !returnedFromHold)
+            {
+                // reset rotation so it can fit into the spawn area
+                ResetRotation();
+                toHold = true;
+            }
         }
 
         if (inputHelper.KeyPressed(Keys.Escape) && started)
