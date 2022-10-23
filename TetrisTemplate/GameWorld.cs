@@ -343,8 +343,8 @@ class GameWorld
     /// </summary>
     public void Reset(bool restarting)
     {
-
         grid.Clear();
+
         if (restarting)
         {
             started = false;
@@ -355,6 +355,7 @@ class GameWorld
             holdblock = null;   
             nextblock = null;
         }
+
         nextblock = NewRandomBlock();
         nextUpGrid.Refresh(nextblock, holdblock);
     }
